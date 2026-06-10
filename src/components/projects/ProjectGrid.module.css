@@ -1,0 +1,114 @@
+.filtersSection {
+  padding: 0 6vw;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--void);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.filtersRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filtersRow::-webkit-scrollbar { display: none; }
+
+.pillGroup {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: 1px solid var(--ghost-border);
+  border-radius: 100px;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: #ffffff55;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pill:hover {
+  border-color: var(--crimson)80;
+  color: var(--bone);
+  background: var(--ghost);
+}
+
+.pillActive {
+  background: var(--crimson);
+  border-color: var(--crimson-vivid);
+  color: var(--ivory);
+  box-shadow: 0 0 16px var(--crimson-glow);
+}
+
+.pillDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ivory);
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--ghost-border);
+  flex-shrink: 0;
+}
+
+.sortGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.sortLabel {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: #ffffff30;
+  margin-right: 0.2rem;
+}
+
+.sortPill {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: #ffffff44;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.sortPill:hover {
+  border-color: var(--ghost-border);
+  color: var(--bone);
+}
+
+.sortPillActive {
+  border-color: var(--crimson);
+  color: var(--crimson-vivid);
+  background: var(--ghost);
+}
+
+.edgeLine {
+  height: 1px;
+  background: linear-gradient(90deg, var(--crimson)60, transparent 80%);
+}

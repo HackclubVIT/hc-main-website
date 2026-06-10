@@ -1,0 +1,282 @@
+.card {
+  position: relative;
+  background: var(--charcoal);
+  border: 1px solid var(--ghost-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  --mx: 50%;
+  --my: 50%;
+}
+
+.card:hover {
+  border-color: var(--crimson)60;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px #00000060, 0 0 0 1px var(--crimson)30;
+  z-index: 2;
+}
+
+/* Featured cards get extra shine */
+.featured {
+  background: linear-gradient(135deg, var(--charcoal) 0%, #1a0a0a 100%);
+}
+
+.featured:hover {
+  box-shadow: 0 16px 60px #00000070, 0 0 0 1px var(--crimson-vivid)50, 0 0 30px var(--crimson-glow);
+}
+
+/* ── Mouse-follow shimmer ── */
+.shimmer {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 200px at var(--mx) var(--my),
+    #ffffff06 0%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card:hover .shimmer { opacity: 1; }
+
+/* ── Background pattern ── */
+.cardBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.card:hover .cardBg { opacity: 0.6; }
+
+/* ── Accent edge ── */
+.accentEdge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  opacity: 0.7;
+  transition: opacity var(--transition);
+}
+
+.card:hover .accentEdge { opacity: 1; }
+
+/* ── Badges ── */
+.featuredBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--crimson);
+  border-radius: 100px;
+  padding: 0.25rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  color: var(--ivory);
+  z-index: 2;
+}
+
+.featuredDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ivory);
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+.statusBadge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  z-index: 2;
+}
+
+.ongoing {
+  background: #006B3C20;
+  border: 1px solid #006B3C80;
+  color: #00C86F;
+}
+
+.completed {
+  background: var(--ghost);
+  border: 1px solid var(--ghost-border);
+  color: #ffffff55;
+}
+
+/* ── Project number ── */
+.projectNumber {
+  position: absolute;
+  bottom: 1rem;
+  right: 1.2rem;
+  font-family: var(--font-display);
+  font-size: 5rem;
+  color: #ffffff08;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+  transition: color var(--transition);
+}
+
+.card:hover .projectNumber { color: #ffffff14; }
+
+/* ── Content ── */
+.content {
+  position: relative;
+  z-index: 2;
+  padding: 3rem 1.5rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-weight: 700;
+  color: var(--ivory);
+  line-height: 1.1;
+  transition: color var(--transition);
+}
+
+.card:hover .title { color: #fff; }
+
+.description {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: #ffffff55;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color var(--transition);
+}
+
+.card:hover .description { color: #ffffff88; }
+
+/* ── Tags ── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--ghost-border);
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: #ffffff44;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.tag:hover {
+  border-color: var(--crimson)80;
+  color: var(--bone);
+  background: var(--ghost);
+}
+
+/* ── Footer ── */
+.footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  border-top: 1px solid var(--ghost-border);
+  background: #00000030;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Avatars ── */
+.members {
+  display: flex;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--void);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.45rem;
+  color: rgba(255,255,255,0.7);
+  margin-right: -8px;
+  transition: transform var(--transition-fast), z-index var(--transition-fast);
+}
+
+.avatar:hover { transform: translateY(-2px) scale(1.1); z-index: 10 !important; }
+
+.avatarMore {
+  background: var(--ash);
+  color: #ffffff55;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.5rem;
+  color: #ffffff44;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-decoration: none;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.actionBtn:hover {
+  color: var(--bone);
+  border-color: var(--ghost-border);
+  background: var(--ghost);
+}
+
+.liked {
+  color: var(--crimson-vivid) !important;
+  border-color: var(--crimson)50 !important;
+  background: var(--crimson)15 !important;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: #D4A017;
+  padding: 0.3rem 0.5rem;
+}

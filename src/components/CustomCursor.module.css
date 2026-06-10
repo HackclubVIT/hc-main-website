@@ -1,0 +1,66 @@
+.dot {
+  position: fixed;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  background: #C0001A;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  will-change: transform;
+  transition: width 0.2s ease, height 0.2s ease,
+              top 0.2s ease, left 0.2s ease,
+              background 0.2s ease,
+              opacity 0.2s ease;
+}
+
+.dotHover {
+  width: 6px;
+  height: 6px;
+  top: -3px;
+  left: -3px;
+  background: #ffffff;
+}
+
+.dotClick {
+  width: 4px;
+  height: 4px;
+  top: -2px;
+  left: -2px;
+  background: #ff002a;
+}
+
+.ring {
+  position: fixed;
+  top: -18px;
+  left: -18px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #C0001A80;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  will-change: transform;
+  transition: width 0.2s ease, height 0.2s ease,
+              top 0.2s ease, left 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.ringHover {
+  width: 48px;
+  height: 48px;
+  top: -24px;
+  left: -24px;
+  border-color: #ffffff60;
+  border-width: 1px;
+}
+
+.ringClick {
+  width: 24px;
+  height: 24px;
+  top: -12px;
+  left: -12px;
+  border-color: #C0001A;
+  opacity: 0.6;
+}
