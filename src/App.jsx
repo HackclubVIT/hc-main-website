@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import HackClubLanding from './LandingPage.jsx'
 
 const navItems = [
   'Overview',
@@ -66,6 +67,7 @@ const systemStatus = [
 ]
 
 function App() {
+  const [showLanding, setShowLanding] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [showSplash, setShowSplash] = useState(false)
   const [showSplashPhase, setShowSplashPhase] = useState(0)
@@ -365,6 +367,10 @@ function App() {
     }
   }, [activeSection])
 
+  if (showLanding) {
+    return <HackClubLanding onLogin={() => setShowLanding(false)} />
+  }
+
   return (
     <div className="app-shell">
       {!authenticated ? (
@@ -460,7 +466,15 @@ function App() {
                   <input type="text" placeholder="Search admin tools..." />
                 </div>
                 <button className="button button-outlined">Reports</button>
-                <button className="button button-secondary" onClick={() => setAuthenticated(false)}>Logout</button>
+                <button
+                  className="button button-secondary"
+                  onClick={() => {
+                    setAuthenticated(false)
+                    setShowLanding(true)
+                  }}
+                >
+                  Logout
+                </button>
               </div>
             </header>
             <main className="admin-content">
