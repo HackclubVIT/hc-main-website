@@ -99,13 +99,11 @@ function Leaderboard() {
   const totalProjects = members.reduce((sum, member) => sum + member.projects, 0)
 
   return (
-    <main className="leaderboard-body">
+    <div className="leaderboard-body">
       <div className="module-wrapper">
         <header className="header-section">
           <div>
-            <span className="module-badge">RATING & LEADERBOARD SYSTEM</span>
-            <h1>Leaderboard and Rating System</h1>
-            <p className="header-copy">
+            <p className="header-copy" style={{ marginTop: 0 }}>
               A modular dashboard for rankings, scoring, analytics, and admin review.
             </p>
           </div>
@@ -129,12 +127,14 @@ function Leaderboard() {
         <section className="hero-grid">
 
           <article className="hero-card spotlight-card">
-            <p className="eyebrow">Top contributor</p>
-            <div className="spotlight-user">
-              <div className="spotlight-avatar">{topThree[0]?.name.slice(0, 2)}</div>
-              <div>
-                <h3>{topThree[0]?.name}</h3>
-                <p>{topThree[0]?.role}</p>
+            <div className="spotlight-left">
+              <p className="eyebrow">Top contributor</p>
+              <div className="spotlight-user">
+                <div className="spotlight-avatar">{topThree[0]?.name.slice(0, 2)}</div>
+                <div style={{ textAlign: 'left' }}>
+                  <h3>{topThree[0]?.name}</h3>
+                  <p>{topThree[0]?.role}</p>
+                </div>
               </div>
             </div>
 
@@ -190,7 +190,7 @@ function Leaderboard() {
 
           <div className="quote-banner">
             <p>
-              <span>Rank calculation system:</span> {sortedMembers[0]?.name} is leading the
+              <span>Rank calculation system:</span> {sortedMembers[0]?.name} is leading the{' '}
               {viewType} board with the highest combined score.
             </p>
           </div>
@@ -209,7 +209,7 @@ function Leaderboard() {
               </thead>
               <tbody>
                 {sortedMembers.map((member, index) => (
-                  <tr key={member.id} className="table-row">
+                  <tr key={member.id} className="leaderboard-table-row">
                     <td className="rank-cell">#{index + 1}</td>
                     <td>
                       <div className="member-cell">
@@ -303,7 +303,7 @@ function Leaderboard() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   )
 }
 

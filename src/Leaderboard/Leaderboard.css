@@ -18,27 +18,9 @@
 
 .leaderboard-body {
   position: relative;
-  min-height: 100vh;
-  padding: 42px 24px 64px;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(255, 68, 68, 0.18), transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(120, 0, 0, 0.35), transparent 40%),
-    linear-gradient(180deg, #0b0506 0%, #050304 100%);
   color: #f5eded;
   font-family: 'Manrope', sans-serif;
   letter-spacing: 0.01em;
-}
-
-.leaderboard-body::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(transparent 95%, rgba(255, 255, 255, 0.03) 100%),
-    linear-gradient(90deg, transparent 96%, rgba(255, 255, 255, 0.02) 100%);
-  background-size: 48px 48px;
-  opacity: 0.55;
-  pointer-events: none;
 }
 
 .module-wrapper {
@@ -54,10 +36,10 @@
 }
 
 .header-section {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.5fr);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 22px;
-  align-items: end;
   padding-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -143,8 +125,8 @@
 }
 
 .hero-grid {
-  /* 3-column layout so the spotlight can sit centered in the middle column */
-  grid-template-columns: 1fr minmax(300px, 640px) 1fr;
+  display: flex;
+  flex-direction: column;
   margin-top: 26px;
 }
 
@@ -190,15 +172,14 @@
 
 .spotlight-card {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 24px;
   align-items: center;
+  justify-content: space-around;
   text-align: center;
-  /* place spotlight into the center column and constrain its width */
-  grid-column: 2 / 3;
   width: 100%;
-  max-width: 640px;
-  margin: 0 auto;
+  padding: 32px;
 }
 
 .spotlight-user {
@@ -389,16 +370,16 @@
   text-align: left;
 }
 
-.table-row {
+.leaderboard-table-row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   transition: background 0.2s ease;
 }
 
-.table-row:hover {
+.leaderboard-table-row:hover {
   background: rgba(255, 68, 68, 0.07);
 }
 
-.table-row td {
+.leaderboard-table-row td {
   padding: 14px 12px;
 }
 
@@ -560,9 +541,6 @@
 }
 
 @media (max-width: 760px) {
-  .leaderboard-body {
-    padding: 18px 12px 28px;
-  }
 
   .module-wrapper {
     padding: 18px;

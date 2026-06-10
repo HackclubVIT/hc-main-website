@@ -396,7 +396,7 @@ function App() {
           <div className="launch-card launch-inline">
             <div className="launch-logo">
               <span className="launch-main">h</span>
-              <span className={`launch-dot ${showSplashPhase === 1 ? 'hidden' : ''}`}>.</span>
+              <span className="launch-dot">.</span>
             </div>
             <div className={`launch-word ${showSplashPhase === 1 ? 'visible' : ''}`}>
               <span>a</span>
@@ -443,7 +443,7 @@ function App() {
               </div>
               <div className="header-actions">
                 <div className="search-box">
-                  <span>≡ƒöì</span>
+                  <span>🔍</span>
                   <input type="text" placeholder="Search admin tools..." />
                 </div>
                 <button className="button button-outlined">Reports</button>
