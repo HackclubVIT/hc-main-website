@@ -83,7 +83,7 @@ const adminControls = [
   'Promote top contributors',
 ]
 
-function Leaderboard() {
+function Leaderboard({ isAdmin = false }) {
   const [viewType, setViewType] = useState('weekly')
 
   const scoreKey = viewType === 'weekly' ? 'weeklyPoints' : 'monthlyPoints'
@@ -273,35 +273,37 @@ function Leaderboard() {
           </article>
         </section>
 
-        <section className="admin-panel">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Admin controls ratings</p>
-              <h2>Review and adjust leaderboard settings</h2>
+        {isAdmin && (
+          <section className="admin-panel">
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">Admin controls ratings</p>
+                <h2>Review and adjust leaderboard settings</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="admin-grid">
-            {adminControls.map((control) => (
-              <article key={control} className="admin-control-card">
-                <strong>{control}</strong>
-                <p>
-                  This panel will be wired to the real action in a later phase once the data
-                  flow is finalized.
-                </p>
-              </article>
-            ))}
-          </div>
+            <div className="admin-grid">
+              {adminControls.map((control) => (
+                <article key={control} className="admin-control-card">
+                  <strong>{control}</strong>
+                  <p>
+                    This panel will be wired to the real action in a later phase once the data
+                    flow is finalized.
+                  </p>
+                </article>
+              ))}
+            </div>
 
-          <div className="active-members-strip">
-            <strong>Active members:</strong>
-            {members.map((member) => (
-              <span key={member.id} className={`member-pill ${member.status.toLowerCase()}`}>
-                {member.name}
-              </span>
-            ))}
-          </div>
-        </section>
+            <div className="active-members-strip">
+              <strong>Active members:</strong>
+              {members.map((member) => (
+                <span key={member.id} className={`member-pill ${member.status.toLowerCase()}`}>
+                  {member.name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )

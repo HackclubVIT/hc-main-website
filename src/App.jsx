@@ -422,7 +422,7 @@ function App() {
           </section>
         )
       case 'Leaderboard':
-        return <Leaderboard />
+        return <Leaderboard isAdmin={true} />
       case 'Analytics':
         return (
           <section className="panel-section">
@@ -1245,33 +1245,7 @@ function App() {
                   </div>
                 </section>
               ) : userSection === 'leaderboard' ? (
-                <section className="panel-section">
-                  <div className="section-head">
-                    <div>
-                      <p className="eyebrow">Leaderboard</p>
-                      <h2>Top contributors in the HackClub community</h2>
-                    </div>
-                  </div>
-                  <div className="leaderboard-card">
-                    {leaderboard.slice(0, 10).map((entry) => (
-                      <div key={entry.rank} className="leaderboard-item">
-                        <span style={{ 
-                          width: '40px', 
-                          textAlign: 'center', 
-                          fontSize: entry.rank <= 3 ? '24px' : '18px', 
-                          fontWeight: 'bold', 
-                          color: entry.rank === 1 ? '#FFD700' : entry.rank === 2 ? '#C0C0C0' : entry.rank === 3 ? '#CD7F32' : 'inherit' 
-                        }}>
-                          {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : entry.rank}
-                        </span>
-                        <div>
-                          <strong>{entry.student}</strong>
-                          <p>{entry.points} points</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <Leaderboard isAdmin={false} />
               ) : userSection === 'team' ? (
                 <section className="panel-section">
                   <div className="section-head">
