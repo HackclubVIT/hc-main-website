@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import HackClubLanding from './LandingPage.jsx'
+import Leaderboard from './Leaderboard/Leaderboard'
 
 const navItems = [
   'Overview',
@@ -162,7 +163,7 @@ function App() {
                 <div key={item.content} className="list-item">
                   <div>
                     <strong>{item.content}</strong>
-                    <p>{item.author} · {item.date}</p>
+                    <p>{item.author} ┬╖ {item.date}</p>
                   </div>
                   <div className="list-actions">
                     <button className="button button-outlined">Reject</button>
@@ -197,27 +198,7 @@ function App() {
           </section>
         )
       case 'Leaderboard':
-        return (
-          <section className="panel-section">
-            <div className="section-head">
-              <div>
-                <p className="eyebrow">Leaderboard Control</p>
-                <h2>Recognize top contributors and winners</h2>
-              </div>
-            </div>
-            <div className="leaderboard-card">
-              {leaderboard.map((entry) => (
-                <div key={entry.rank} className="leaderboard-item">
-                  <span>{entry.rank}</span>
-                  <div>
-                    <strong>{entry.student}</strong>
-                    <p>{entry.points} points</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )
+        return <Leaderboard />
       case 'Analytics':
         return (
           <section className="panel-section">
@@ -415,7 +396,7 @@ function App() {
           <div className="launch-card launch-inline">
             <div className="launch-logo">
               <span className="launch-main">h</span>
-              <span className={`launch-dot ${showSplashPhase === 1 ? 'hidden' : ''}`}>.</span>
+              <span className="launch-dot">.</span>
             </div>
             <div className={`launch-word ${showSplashPhase === 1 ? 'visible' : ''}`}>
               <span>a</span>
