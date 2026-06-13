@@ -1,0 +1,16 @@
+{
+  "name": "hc-backend",
+  "version": "1.0.0",
+  "description": "Backend API server for HackClub portal",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^8.0.11"
+  }
+}
