@@ -547,7 +547,7 @@ app.post('/api/leaderboard/refresh', authenticateToken, async (req, res) => {
     });
     
     const newAvgRating = ratedProjectsCount > 0 ? (totalRatingSum / ratedProjectsCount) : 0;
-    const newProjectRatingScore = Math.round((newAvgRating / 5) * 100); // normalized based on 5 star rating
+    const newProjectRatingScore = Math.round((newAvgRating / 10) * 100); // normalized based on 10 star rating
 
     // 70% project ratings + 20% contributions + 10% events
     const newTotalScore = Math.round(

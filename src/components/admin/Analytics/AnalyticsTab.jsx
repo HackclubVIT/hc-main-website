@@ -4,6 +4,18 @@ export default function AdminAnalytics({ users, projects }) {
   const activeReviewers = users.filter(u => u.isReviewer).length;
   const pendingProjects = projects.filter(p => p.status === 'Pending').length;
 
+  const getProjectsThisWeek = () => {
+    if (!projects) return 0;
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return projects.filter(p => {
+      if (!p.submissionDate) return false;
+      const subDate = new Date(p.submissionDate);
+      return subDate >= sevenDaysAgo;
+    }).length;
+  };
+  const projectsThisWeekCount = getProjectsThisWeek();
+
   const handleExport = () => {
     const activeUsers = users.filter(u => u.status === 'Active').length;
     const topContributors = [...users].sort((a,b) => (b.contributionScore || 0) - (a.contributionScore || 0)).slice(0, 3).map(u => `${u.name} (${u.contributionScore || 0} pts)`).join(', ');
@@ -62,8 +74,8 @@ export default function AdminAnalytics({ users, projects }) {
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
           <div className="panel-card">
             <p className="eyebrow">Projects Uploaded This Week</p>
-            <h3>12</h3>
-            <p style={{ color: '#4caf50' }}>↑ 20% vs last week</p>
+            <h3>{projectsThisWeekCount}</h3>
+            <p style={{ color: '#4caf50' }}>Live weekly submissions</p>
           </div>
           <div className="panel-card">
             <p className="eyebrow">Active Users</p>

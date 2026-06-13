@@ -1,6 +1,6 @@
 
 
-export default function ProjectsTab({ dashboardProjects, setDashboardProjects, setGlobalUploads, showAddProject, setShowAddProject, newProject, setNewProject }) {
+export default function ProjectsTab({ dashboardProjects, setDashboardProjects, setGlobalUploads, showAddProject, setShowAddProject, newProject, setNewProject, globalProfile }) {
   return (
     <section className="panel-section">
       <div className="section-head">
@@ -17,12 +17,22 @@ export default function ProjectsTab({ dashboardProjects, setDashboardProjects, s
           <h3>Submit a new project</h3>
           <form className="responsive-2col" onSubmit={(e) => {
             e.preventDefault();
-            if (setGlobalUploads) {
-              setGlobalUploads(prev => [{...newProject, id: Date.now()}, ...prev]);
-            } else {
-              setDashboardProjects(prev => [newProject, ...prev]);
-            }
-            setNewProject({ title: '', description: '', github: '', deployment: '', status: 'Pending', owner: 'Priya Sharma', rating: '0.0' });
+            const projectToSubmit = {
+              id: Date.now(),
+              title: newProject.title,
+              description: newProject.description,
+              github: newProject.github,
+              deployment: newProject.deployment,
+              status: 'Pending',
+              owner: globalProfile?.name || 'Priya Sharma',
+              rating: '0.0',
+              submissionDate: new Date().toISOString().split('T')[0],
+              technologiesUsed: ['React', 'CSS'],
+              individualRatings: [],
+              awards: []
+            };
+            setDashboardProjects(prev => [projectToSubmit, ...prev]);
+            setNewProject({ title: '', description: '', github: '', deployment: '', status: 'Pending', owner: globalProfile?.name || 'Priya Sharma', rating: '0.0' });
             setShowAddProject(false);
             window.alert('Project submitted! Waiting for admin approval.');
           }} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>

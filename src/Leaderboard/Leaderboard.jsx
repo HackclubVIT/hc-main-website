@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react';
 import TopMembers from './TopMembers/TopMembers';
 import BestProjects from './BestProjects/BestProjects';
 import WeeklyWinners from './WeeklyWinners/WeeklyWinners';
@@ -14,7 +14,6 @@ export default function Leaderboard({ users, projects, weeklyWinners, monthlyWin
       <div className="section-head" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
         <div>
           <p className="eyebrow">Leaderboards</p>
-
         </div>
         <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px', width: '100%', overflowX: 'auto' }}>
           <button 
@@ -63,11 +62,11 @@ export default function Leaderboard({ users, projects, weeklyWinners, monthlyWin
       </div>
 
       <div style={{ marginTop: '24px' }}>
-        {activeTab === 'members' && <TopMembers users={users} />}
+        {activeTab === 'members' && <TopMembers users={users} projects={projects} />}
         {activeTab === 'projects' && <BestProjects projects={projects} users={users} />}
-      {activeTab === 'weekly' && <WeeklyWinners weeklyWinners={weeklyWinners} />}
-      {activeTab === 'monthly' && <MonthlyWinners monthlyWinners={monthlyWinners} />}
-      {activeTab === 'badges' && <BadgeShowcase users={users} />}
+        {activeTab === 'weekly' && <WeeklyWinners weeklyWinners={weeklyWinners} />}
+        {activeTab === 'monthly' && <MonthlyWinners monthlyWinners={monthlyWinners} />}
+        {activeTab === 'badges' && <BadgeShowcase users={users} />}
         {activeTab === 'hallOfFame' && <HallOfFame monthlyWinners={monthlyWinners} />}
       </div>
     </section>

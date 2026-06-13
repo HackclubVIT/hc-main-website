@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function AdminManageUsers({ users, setUsers, activities }) {
+export default function AdminManageUsers({ users, setUsers, activities, projects }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -29,24 +29,39 @@ export default function AdminManageUsers({ users, setUsers, activities }) {
   };
 
   if (selectedUser) {
-    const userEmail = `${selectedUser.name.toLowerCase().replace(' ', '.')}@hackclub.in`;
-    const userRegNo = `21BCE${1000 + (selectedUser.id % 9000)}`;
-    const userPhone = `+91 98765 ${43210 + (selectedUser.id % 1000)}`;
-    const userDept = 'Computer Science & Engineering';
+    const userEmail = selectedUser.email || `${selectedUser.name.toLowerCase().replace(' ', '.')}@vitstudent.ac.in`;
+    const userRegNo = selectedUser.registerNumber || `21BCE${1000 + (selectedUser.id % 9000)}`;
+    const userPhone = selectedUser.phoneNumber || `+91 98765 ${43210 + (selectedUser.id % 1000)}`;
+    const userDept = selectedUser.department || 'Computer Science & Engineering';
     const userLinkedin = `linkedin.com/in/${selectedUser.name.replace(/\s+/g, '').toLowerCase()}`;
-    const userGithub = `github.com/${selectedUser.name.replace(/\s+/g, '').toLowerCase()}`;
-    const userPortfolio = `${selectedUser.name.replace(/\s+/g, '').toLowerCase()}.me`;
-    const userLeaderboardPosition = `#${Math.max(1, Math.floor(100 - selectedUser.totalScore / 2))}`;
+    const userGithub = selectedUser.github || `github.com/${selectedUser.name.replace(/\s+/g, '').toLowerCase()}`;
+    const userPortfolio = selectedUser.portfolio || `${selectedUser.name.replace(/\s+/g, '').toLowerCase()}.dev`;
+    
+    // Sort users by totalScore to calculate live rank
+    const sortedLeaderboard = [...users].sort((a, b) => b.totalScore - a.totalScore);
+    const resolvedRank = sortedLeaderboard.findIndex(u => u.id === selectedUser.id) + 1;
+    const userLeaderboardPosition = resolvedRank > 0 ? `#${resolvedRank}` : 'N/A';
 
-    const userProjects = [
-      { id: 1, title: 'Hackathon Management Platform', status: 'Approved', rating: 4.8 },
-      { id: 2, title: 'AI Study Assistant', status: 'Pending Review', rating: '-' },
-    ];
+    // Find actual projects owner by selected user
+    const userProjects = projects ? projects.filter(p => p.owner === selectedUser.name) : [];
 
-    const userEvaluations = [
-      { id: 1, project: 'Smart Hostel System', givenRating: 9.0, feedback: 'Great concept, UI needs improvement.' },
-      { id: 2, project: 'Blockchain Voting', givenRating: 10.0, feedback: 'Perfect implementation and security.' },
-    ];
+    // Find actual reviews left by this user
+    const userEvaluations = [];
+    if (projects) {
+      projects.forEach(p => {
+        if (p.individualRatings) {
+          const ratingObj = p.individualRatings.find(r => r.user === selectedUser.name);
+          if (ratingObj) {
+            userEvaluations.push({
+              id: p.id,
+              project: p.title,
+              givenRating: ratingObj.rating,
+              feedback: ratingObj.comment
+            });
+          }
+        }
+      });
+    }
 
     return (
       <section className="panel-section">
@@ -198,7 +213,7 @@ export default function AdminManageUsers({ users, setUsers, activities }) {
               </div>
               <div className="panel-card">
                 <p className="eyebrow">Projects Uploaded</p>
-                <h3>{selectedUser.projectsUploaded}</h3>
+                <h3>{userProjects.length}</h3>
               </div>
               <div className="panel-card">
                 <p className="eyebrow">Leaderboard Pos.</p>
@@ -209,21 +224,21 @@ export default function AdminManageUsers({ users, setUsers, activities }) {
             <div className="panel-card">
               <p className="eyebrow">Submitted Projects</p>
               <div className="activity-list" style={{ marginTop: '16px' }}>
-                {userProjects.map((proj) => (
+                {userProjects.length > 0 ? userProjects.map((proj) => (
                   <div key={proj.id} className="activity-item" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
                     <div>
                       <strong style={{ display: 'block', marginBottom: '4px' }}>{proj.title}</strong>
                       <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Status: {proj.status} • Rating: {proj.rating}</p>
                     </div>
                   </div>
-                ))}
+                )) : <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>No projects submitted yet.</p>}
               </div>
             </div>
 
             <div className="panel-card">
               <p className="eyebrow">Submitted Evaluations</p>
               <div className="activity-list" style={{ marginTop: '16px' }}>
-                {userEvaluations.map((evalItem) => (
+                {userEvaluations.length > 0 ? userEvaluations.map((evalItem) => (
                   <div key={evalItem.id} className="activity-item" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
                     <div>
                       <strong style={{ display: 'block', marginBottom: '4px' }}>{evalItem.project}</strong>
@@ -231,7 +246,7 @@ export default function AdminManageUsers({ users, setUsers, activities }) {
                       <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', fontStyle: 'italic' }}>"{evalItem.feedback}"</p>
                     </div>
                   </div>
-                ))}
+                )) : <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>No evaluations submitted yet.</p>}
               </div>
             </div>
 

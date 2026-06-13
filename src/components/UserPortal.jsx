@@ -57,9 +57,9 @@ export default function UserPortal({
       case 'profile':
         return <ProfileTab dashboardProfile={globalProfile} setDashboardProfile={setGlobalProfile} dashboardPassword={dashboardPassword} setDashboardPassword={setDashboardPassword} />
       case 'projects':
-        return <ProjectsTab dashboardProjects={globalProjects} setDashboardProjects={setGlobalProjects} setGlobalUploads={setGlobalUploads} showAddProject={showAddProject} setShowAddProject={setShowAddProject} newProject={newProject} setNewProject={setNewProject} />
+        return <ProjectsTab dashboardProjects={globalProjects} setDashboardProjects={setGlobalProjects} setGlobalUploads={setGlobalUploads} showAddProject={showAddProject} setShowAddProject={setShowAddProject} newProject={newProject} setNewProject={setNewProject} globalProfile={globalProfile} />
       case 'evaluate':
-        return <EvaluateTab dashboardProjects={globalProjects} />
+        return <EvaluateTab dashboardProjects={globalProjects} setDashboardProjects={setGlobalProjects} />
       case 'activity':
         return <ActivityTab dashboardActivities={globalActivities} setDashboardActivities={setGlobalActivities} />
       case 'analytics':

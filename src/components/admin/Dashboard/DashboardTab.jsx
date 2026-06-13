@@ -1,5 +1,5 @@
-export default function DashboardTab({ adminUploads, globalAnnouncements }) {
-  const pendingCount = adminUploads.filter(u => u.status === 'Pending').length;
+export default function DashboardTab({ adminUploads, globalAnnouncements, users, projects }) {
+  const pendingProjectsCount = projects ? projects.filter(p => p.status === 'Pending').length : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -22,12 +22,33 @@ export default function DashboardTab({ adminUploads, globalAnnouncements }) {
       {/* Primary Stats */}
       <section className="panel-section">
         <h3 style={{ marginBottom: '16px', fontSize: '1.2rem', fontWeight: 600 }}>At a Glance</h3>
-        <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-          <div className="panel-card" style={{ borderLeft: pendingCount > 0 ? '4px solid #ffaa00' : '4px solid #4caf50' }}>
-            <p className="eyebrow">Pending Uploads</p>
-            <h3 style={{ fontSize: '2rem', margin: '8px 0', color: pendingCount > 0 ? '#ffaa00' : '#4caf50' }}>{pendingCount}</h3>
-            <p style={{ color: 'var(--text-muted)' }}>{pendingCount > 0 ? 'Uploads require your review.' : 'All caught up!'}</p>
+        <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="panel-card" style={{ borderLeft: '4px solid var(--accent)' }}>
+            <p className="eyebrow">Members</p>
+            <h3 style={{ fontSize: '2rem', margin: '8px 0', color: 'white' }}>{users ? users.length : 0}</h3>
+            <p style={{ color: 'var(--text-muted)' }}>Registered members</p>
           </div>
+          <div className="panel-card" style={{ borderLeft: '4px solid #4caf50' }}>
+            <p className="eyebrow">Projects</p>
+            <h3 style={{ fontSize: '2rem', margin: '8px 0', color: 'white' }}>{projects ? projects.length : 0}</h3>
+            <p style={{ color: 'var(--text-muted)' }}>Submitted projects</p>
+          </div>
+          <div className="panel-card" style={{ borderLeft: '4px solid #00bcd4' }}>
+            <p className="eyebrow">Reviewers</p>
+            <h3 style={{ fontSize: '2rem', margin: '8px 0', color: 'white' }}>{users ? users.filter(u => u.isReviewer).length : 0}</h3>
+            <p style={{ color: 'var(--text-muted)' }}>Active evaluators</p>
+          </div>
+          <div className="panel-card" style={{ borderLeft: pendingProjectsCount > 0 ? '4px solid #ffaa00' : '4px solid #4caf50' }}>
+            <p className="eyebrow">Pending Projects</p>
+            <h3 style={{ fontSize: '2rem', margin: '8px 0', color: pendingProjectsCount > 0 ? '#ffaa00' : '#4caf50' }}>{pendingProjectsCount}</h3>
+            <p style={{ color: 'var(--text-muted)' }}>Require approval</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Announcements and Uptime Info */}
+      <section className="panel-section">
+        <div className="cards-grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
           <div className="panel-card card-accent" style={{ background: 'linear-gradient(to bottom right, rgba(255,85,85,0.1), transparent)' }}>
             <p className="eyebrow">Latest Announcement</p>
             <strong style={{ display: 'block', margin: '8px 0', fontSize: '1.2rem' }}>{globalAnnouncements[0]?.title || 'No recent updates'}</strong>

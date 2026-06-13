@@ -2,10 +2,40 @@ import { useState } from 'react';
 import BadgeList from '../BadgeShowcase/BadgeList';
 
 
-export default function TopMembers({ users }) {
+export default function TopMembers({ users, projects }) {
   const [selectedMember, setSelectedMember] = useState(null);
 
   const sortedUsers = [...users].sort((a, b) => b.totalScore - a.totalScore);
+
+  // Dynamic calculations for selected member
+  const memberProjects = selectedMember && projects ? projects.filter(p => p.owner === selectedMember.name) : [];
+  const projectsCount = memberProjects.length;
+  const ratings = memberProjects.map(p => parseFloat(p.rating)).filter(r => !isNaN(r) && r > 0);
+  const averageRating = ratings.length > 0 ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1) : '0.0';
+
+  const projectHistory = memberProjects.map(p => ({
+    title: 'Submitted project',
+    detail: `Uploaded "${p.title}" with status "${p.status}"`,
+    time: p.submissionDate || 'N/A'
+  }));
+
+  const evaluationHistory = [];
+  if (selectedMember && projects) {
+    projects.forEach(p => {
+      if (p.individualRatings) {
+        const ratingObj = p.individualRatings.find(r => r.user === selectedMember.name);
+        if (ratingObj) {
+          evaluationHistory.push({
+            title: 'Reviewed project',
+            detail: `Rated "${p.title}" as ${ratingObj.rating}/10 - "${ratingObj.comment}"`,
+            time: 'N/A'
+          });
+        }
+      }
+    });
+  }
+
+  const contributionsHistory = [...projectHistory, ...evaluationHistory];
 
   if (selectedMember) {
     return (
@@ -32,11 +62,11 @@ export default function TopMembers({ users }) {
             </div>
             <div className="panel-card">
               <p className="eyebrow">Projects Uploaded</p>
-              <h3>{selectedMember.projectsUploaded || 3}</h3>
+              <h3>{projectsCount}</h3>
             </div>
             <div className="panel-card">
               <p className="eyebrow">Average Rating</p>
-              <h3>{selectedMember.averageRating || '4.5'} ⭐</h3>
+              <h3>{averageRating} ⭐</h3>
             </div>
           </div>
           
@@ -47,28 +77,28 @@ export default function TopMembers({ users }) {
               
               <h3 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px', marginBottom: '16px', marginTop: '32px' }}>Recent Projects</h3>
               <ul style={{ paddingLeft: '20px', color: 'var(--text-muted)' }}>
-                {(selectedMember.recentProjects || ['AI Image Generator', 'Web App Dashboard']).map(p => <li key={p} style={{ marginBottom: '8px' }}>{p}</li>)}
+                {memberProjects.length > 0 ? memberProjects.map(p => (
+                  <li key={p.id} style={{ marginBottom: '8px' }}>
+                    <strong>{p.title}</strong> ({p.rating} ⭐)
+                  </li>
+                )) : (
+                  <li style={{ color: 'var(--text-muted)' }}>No projects uploaded yet.</li>
+                )}
               </ul>
             </div>
             
             <div>
               <h3 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px', marginBottom: '16px' }}>Contribution History</h3>
               <div className="activity-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="panel-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Reviewed project</strong>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Left feedback on "Green Code Initiative"</p>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--accent)', display: 'block', marginTop: '8px' }}>2 days ago</span>
-                </div>
-                <div className="panel-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Submitted project</strong>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Uploaded initial draft of new portfolio</p>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--accent)', display: 'block', marginTop: '8px' }}>1 week ago</span>
-                </div>
-                <div className="panel-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                  <strong style={{ display: 'block', marginBottom: '4px' }}>Attended Event</strong>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Participated in Weekend Hackathon</p>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--accent)', display: 'block', marginTop: '8px' }}>2 weeks ago</span>
-                </div>
+                {contributionsHistory.length > 0 ? contributionsHistory.map((item, index) => (
+                  <div key={index} className="panel-card" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                    <strong style={{ display: 'block', marginBottom: '4px' }}>{item.title}</strong>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.detail}</p>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--accent)', display: 'block', marginTop: '8px' }}>{item.time}</span>
+                  </div>
+                )) : (
+                  <p style={{ color: 'var(--text-muted)' }}>No recent contributions recorded.</p>
+                )}
               </div>
             </div>
           </div>

@@ -114,6 +114,24 @@
       "contributionScore": 88,
       "eventScore": 85,
       "totalScore": 95
+    },
+    {
+      "id": 1781324480775,
+      "name": "Prachi Khandelwal",
+      "email": "prachi.khandelwal2024@vitstudent.ac.in",
+      "role": "Member",
+      "status": "Active",
+      "isReviewer": false,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "New Maker"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7
     }
   ],
   "projects": [

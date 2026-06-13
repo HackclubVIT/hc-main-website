@@ -45,7 +45,7 @@ export default function AdminPortal({
   const sectionContent = useMemo(() => {
     switch (activeSection) {
       case 'Manage Users':
-        return <ManageUsersTab users={globalUsers} setUsers={setGlobalUsers} activities={globalActivities} />
+        return <ManageUsersTab users={globalUsers} setUsers={setGlobalUsers} activities={globalActivities} projects={globalProjects} />
       case 'Manage Projects':
         return <ManageProjectsTab projects={globalProjects} setProjects={setGlobalProjects} />
       case 'Approve Uploads':
@@ -76,7 +76,7 @@ export default function AdminPortal({
       case 'Profile':
         return <ProfileTab />
       default:
-        return <DashboardTab adminUploads={globalUploads} globalAnnouncements={globalAnnouncements} />
+        return <DashboardTab adminUploads={globalUploads} globalAnnouncements={globalAnnouncements} users={globalUsers} projects={globalProjects} />
     }
   }, [
     activeSection,

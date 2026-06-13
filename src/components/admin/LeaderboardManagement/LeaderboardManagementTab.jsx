@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 const ScoreInput = ({ value, onChangeScore }) => {
   const [localVal, setLocalVal] = useState(value || '');
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalVal(value || '');
   }, [value]);
 
@@ -35,25 +34,58 @@ const ScoreInput = ({ value, onChangeScore }) => {
   );
 };
 
-export default function AdminLeaderboardManagement({ weeklyWinners, users, setUsers, projects, addAnnouncement }) {
+export default function AdminLeaderboardManagement({ weeklyWinners, setWeeklyWinners, users, setUsers, projects, addAnnouncement }) {
   
   const sortedUsers = [...users].sort((a, b) => b.totalScore - a.totalScore);
-  const actualTopContributor = sortedUsers.length > 0 ? sortedUsers[0].name : weeklyWinners.topContributor;
-  const actualMostActive = sortedUsers.length > 0 ? [...users].sort((a, b) => (b.contributionScore || 0) - (a.contributionScore || 0))[0].name : weeklyWinners.mostActive;
+  const actualTopContributor = sortedUsers.length > 0 ? sortedUsers[0].name : (weeklyWinners?.topContributor || '');
+  const actualMostActive = sortedUsers.length > 0 ? [...users].sort((a, b) => (b.contributionScore || 0) - (a.contributionScore || 0))[0].name : (weeklyWinners?.mostActive || '');
 
   const topProjects = [...projects]
     .filter(p => !isNaN(parseFloat(p.rating)))
     .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
     .slice(0, 3);
-  const actualTopProject = topProjects.length > 0 ? topProjects[0].title : weeklyWinners.topProject;
+  const actualTopProject = topProjects.length > 0 ? topProjects[0].title : (weeklyWinners?.topProject || '');
+  const actualBestInnovation = topProjects.length > 1 ? topProjects[1].title : (topProjects.length > 0 ? topProjects[0].title : (weeklyWinners?.bestInnovation || ''));
+
+  // Local state for winner choices
+  const [chosenTopContributor, setChosenTopContributor] = useState(actualTopContributor);
+  const [chosenTopProject, setChosenTopProject] = useState(actualTopProject);
+  const [chosenMostActive, setChosenMostActive] = useState(actualMostActive);
+  const [chosenBestInnovation, setChosenBestInnovation] = useState(actualBestInnovation);
+
+  // Sync state if computed defaults change
+  useEffect(() => {
+    setChosenTopContributor(actualTopContributor);
+  }, [actualTopContributor]);
+
+  useEffect(() => {
+    setChosenTopProject(actualTopProject);
+  }, [actualTopProject]);
+
+  useEffect(() => {
+    setChosenMostActive(actualMostActive);
+  }, [actualMostActive]);
+
+  useEffect(() => {
+    setChosenBestInnovation(actualBestInnovation);
+  }, [actualBestInnovation]);
 
   const handlePublishWinners = () => {
+    if (setWeeklyWinners) {
+      setWeeklyWinners({
+        topContributor: chosenTopContributor,
+        topProject: chosenTopProject,
+        mostActive: chosenMostActive,
+        bestInnovation: chosenBestInnovation
+      });
+    }
+
     addAnnouncement({
       title: '🏆 Weekly Winners Announced!',
-      body: `Congratulations to ${actualTopContributor} for being the Top Contributor, and "${actualTopProject}" for being the Top Project of the week!`,
+      body: `Congratulations to this week's winners! 🏆 Top Contributor of the Week: ${chosenTopContributor} | 🚀 Top Project of the Week: "${chosenTopProject}" | 🔥 Most Active Member: ${chosenMostActive} | 💡 Best Innovation: "${chosenBestInnovation}"`,
       label: 'Winner'
     });
-    window.alert('Weekly Winners have been published to Announcements!');
+    window.alert('Weekly Winners have been successfully updated and published to Announcements!');
   };
 
   const handleRefreshRankings = () => {
@@ -91,8 +123,6 @@ export default function AdminLeaderboardManagement({ weeklyWinners, users, setUs
     window.alert('Rankings have been successfully refreshed and sorted based on the latest live project ratings!');
   };
 
-
-
   return (
     <section className="panel-section">
       <div className="section-head">
@@ -107,21 +137,72 @@ export default function AdminLeaderboardManagement({ weeklyWinners, users, setUs
       </div>
       
       <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-        <div className="panel-card card-highlight">
-          <p className="eyebrow">Top Contributor of the Week</p>
-          <h3>{actualTopContributor}</h3>
+        <div className="panel-card card-highlight" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p className="eyebrow">Top Contributor</p>
+          <select 
+            value={chosenTopContributor}
+            onChange={(e) => setChosenTopContributor(e.target.value)}
+            style={{ 
+              background: 'transparent', color: '#ffdcdc', border: 'none', 
+              fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', 
+              cursor: 'pointer', padding: 0, width: '100%', fontFamily: 'inherit' 
+            }}
+          >
+            {users.map(u => <option key={u.id} value={u.name} style={{ background: '#1e1e1e', color: 'white' }}>{u.name}</option>)}
+            {users.length === 0 && <option value="">No members</option>}
+          </select>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Computed: {actualTopContributor}</span>
         </div>
-        <div className="panel-card card-accent">
-          <p className="eyebrow">Top Project of the Week</p>
-          <h3>{actualTopProject}</h3>
+        
+        <div className="panel-card card-accent" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p className="eyebrow">Top Project</p>
+          <select 
+            value={chosenTopProject}
+            onChange={(e) => setChosenTopProject(e.target.value)}
+            style={{ 
+              background: 'transparent', color: '#ffb1b1', border: 'none', 
+              fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', 
+              cursor: 'pointer', padding: 0, width: '100%', fontFamily: 'inherit' 
+            }}
+          >
+            {projects.map(p => <option key={p.id} value={p.title} style={{ background: '#1e1e1e', color: 'white' }}>{p.title}</option>)}
+            {projects.length === 0 && <option value="">No projects</option>}
+          </select>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Computed: {actualTopProject}</span>
         </div>
-        <div className="panel-card">
+
+        <div className="panel-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="eyebrow">Most Active Member</p>
-          <h3>{actualMostActive}</h3>
+          <select 
+            value={chosenMostActive}
+            onChange={(e) => setChosenMostActive(e.target.value)}
+            style={{ 
+              background: 'transparent', color: 'white', border: 'none', 
+              fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', 
+              cursor: 'pointer', padding: 0, width: '100%', fontFamily: 'inherit' 
+            }}
+          >
+            {users.map(u => <option key={u.id} value={u.name} style={{ background: '#1e1e1e', color: 'white' }}>{u.name}</option>)}
+            {users.length === 0 && <option value="">No members</option>}
+          </select>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Computed: {actualMostActive}</span>
         </div>
-        <div className="panel-card">
+
+        <div className="panel-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <p className="eyebrow" style={{ color: '#00e5ff' }}>Best Innovation</p>
-          <h3>{weeklyWinners.bestInnovation}</h3>
+          <select 
+            value={chosenBestInnovation}
+            onChange={(e) => setChosenBestInnovation(e.target.value)}
+            style={{ 
+              background: 'transparent', color: 'white', border: 'none', 
+              fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', 
+              cursor: 'pointer', padding: 0, width: '100%', fontFamily: 'inherit' 
+            }}
+          >
+            {projects.map(p => <option key={p.id} value={p.title} style={{ background: '#1e1e1e', color: 'white' }}>{p.title}</option>)}
+            {projects.length === 0 && <option value="">No projects</option>}
+          </select>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Computed: {actualBestInnovation}</span>
         </div>
       </div>
 
@@ -170,7 +251,7 @@ export default function AdminLeaderboardManagement({ weeklyWinners, users, setUs
               <ScoreInput 
                 value={user.projectRatingScore}
                 onChangeScore={(val) => {
-                  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, projectRatingScore: val, totalScore: Math.round(val * 0.7 + (u.contributionScore || 0) * 0.2 + (u.engagementScore || 0) * 0.1) } : u));
+                  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, projectRatingScore: val, totalScore: Math.round(val * 0.7 + (u.contributionScore || 0) * 0.2 + (u.eventScore || 0) * 0.1) } : u));
                 }}
               />
             </div>
@@ -178,15 +259,15 @@ export default function AdminLeaderboardManagement({ weeklyWinners, users, setUs
               <ScoreInput 
                 value={user.contributionScore}
                 onChangeScore={(val) => {
-                  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, contributionScore: val, totalScore: Math.round((u.projectRatingScore || 0) * 0.7 + val * 0.2 + (u.engagementScore || 0) * 0.1) } : u));
+                  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, contributionScore: val, totalScore: Math.round((u.projectRatingScore || 0) * 0.7 + val * 0.2 + (u.eventScore || 0) * 0.1) } : u));
                 }}
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ScoreInput 
-                value={user.engagementScore}
+                value={user.eventScore}
                 onChangeScore={(val) => {
-                  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, engagementScore: val, totalScore: Math.round((u.projectRatingScore || 0) * 0.7 + (u.contributionScore || 0) * 0.2 + val * 0.1) } : u));
+                  setUsers(prev => prev.map(u => u.id === user.id ? { ...u, eventScore: val, totalScore: Math.round((u.projectRatingScore || 0) * 0.7 + (u.contributionScore || 0) * 0.2 + val * 0.1) } : u));
                 }}
               />
             </div>

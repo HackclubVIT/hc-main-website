@@ -5,26 +5,27 @@ export default function AdminRatingsManagement({ projects, setProjects }) {
 
   const removeRating = (projectId, ratingUser) => {
     if (window.confirm(`Are you sure you want to remove the rating from ${ratingUser}?`)) {
-      setProjects(projects.map(p => {
+      const updatedProjects = projects.map(p => {
         if (p.id === projectId) {
           const newRatings = p.individualRatings.filter(r => r.user !== ratingUser);
           const newAvg = newRatings.length > 0 
             ? (newRatings.reduce((acc, r) => acc + r.rating, 0) / newRatings.length).toFixed(1) 
-            : 0;
+            : '0.0';
           return { ...p, individualRatings: newRatings, rating: newAvg };
         }
         return p;
-      }));
+      });
+      setProjects(updatedProjects);
+      
       if (selectedProject && selectedProject.id === projectId) {
-        const updatedProj = projects.find(p => p.id === projectId);
-        const newRatings = updatedProj.individualRatings.filter(r => r.user !== ratingUser);
-        const newAvg = newRatings.length > 0 
-          ? (newRatings.reduce((acc, r) => acc + r.rating, 0) / newRatings.length).toFixed(1) 
-          : 0;
-        setSelectedProject({ ...updatedProj, individualRatings: newRatings, rating: newAvg });
+        const updatedProj = updatedProjects.find(p => p.id === projectId);
+        if (updatedProj) {
+          setSelectedProject(updatedProj);
+        }
       }
     }
   };
+
 
   return (
     <section className="panel-section">
