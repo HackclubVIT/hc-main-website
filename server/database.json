@@ -132,6 +132,42 @@
       "contributionScore": 10,
       "eventScore": 5,
       "totalScore": 7
+    },
+    {
+      "id": 1781502524190,
+      "name": "Ojas Singh",
+      "email": "ojas.singh2024@vitstudent.ac.in",
+      "role": "Member",
+      "status": "Active",
+      "isReviewer": false,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "New Maker"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7
+    },
+    {
+      "id": 1781502792923,
+      "name": "Admin",
+      "email": "admin@vitstudent.ac.in",
+      "role": "Admin",
+      "status": "Active",
+      "isReviewer": true,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "Lead Organizer"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7
     }
   ],
   "projects": [
