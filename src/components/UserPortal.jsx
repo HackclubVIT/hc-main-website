@@ -10,6 +10,8 @@ import TeamTab from './user/Team/TeamTab'
 import UpdatesTab from './user/Updates/UpdatesTab'
 import NotificationsTab from './user/Notifications/NotificationsTab'
 import EventsTab from './user/Events/EventsTab'
+import { useNavigate } from 'react-router-dom'
+import ProjectsPage from '../pages/projects/ProjectsPage'
 
 export default function UserPortal({ 
   onLogout, 
@@ -49,7 +51,7 @@ export default function UserPortal({
   
   const [showAddProject, setShowAddProject] = useState(false)
   const [newProject, setNewProject] = useState({ title: '', description: '', github: '', deployment: '', status: 'Pending', owner: 'Priya Sharma', rating: '0.0' })
-
+  const navigate = useNavigate()
   const sectionContent = (() => {
     switch (userSection) {
       case 'overview':
@@ -123,7 +125,7 @@ export default function UserPortal({
           <div className="nav-section">
             <button
               className={`nav-link ${userSection === 'projects' ? 'active' : ''}`}
-              onClick={() => setUserSection('projects')}
+              onClick={() => navigate('/projects')}
               title="My Projects"
             >
               <span>📁</span>

@@ -168,6 +168,30 @@
       "contributionScore": 10,
       "eventScore": 5,
       "totalScore": 7
+    },
+    {
+      "id": 1781610309895,
+      "name": "Sanjana Nagarajan",
+      "email": "sanjana.nagarajan2025@vitstudent.ac.in",
+      "role": "Member",
+      "status": "Active",
+      "isReviewer": false,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "New Maker"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7,
+      "phoneNumber": "+91 98765 19895",
+      "github": "github.com/sanjana.nagarajan2025",
+      "portfolio": "sanjana.nagarajan2025.dev",
+      "avatar": "emoji:👩‍💻",
+      "registerNumber": "24BCE1895",
+      "location": "Chennai"
     }
   ],
   "projects": [
@@ -409,20 +433,20 @@
     "topProject": "AI Interview Bot"
   },
   "profile": {
-    "name": "Priya Sharma",
-    "role": "Frontend Lead",
-    "registerNumber": "21BCE10234",
-    "email": "priya@vitstudent.ac.in",
-    "phoneNumber": "+91 9876543210",
+    "name": "Sanjana Nagarajan",
+    "role": "Member",
+    "registerNumber": "24BCE1895",
+    "email": "sanjana.nagarajan2025@vitstudent.ac.in",
+    "phoneNumber": "+91 98765 19895",
     "location": "Chennai",
-    "joined": "Aug 2023",
-    "github": "github.com/priyasharma",
-    "portfolio": "priyasharma.dev",
+    "joined": "Jun 2026",
+    "github": "github.com/sanjana.nagarajan2025",
+    "portfolio": "sanjana.nagarajan2025.dev",
     "badges": [
-      "Top Performer",
-      "Active Contributor"
+      "New Maker"
     ],
-    "isReviewer": true
+    "isReviewer": false,
+    "avatar": "emoji:👩‍💻"
   },
   "contributions": [
     {
