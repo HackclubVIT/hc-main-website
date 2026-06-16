@@ -1,7 +1,13 @@
 
 import BadgeList from '../../../Leaderboard/BadgeShowcase/BadgeList';
+import { HACKCLUB_DEPARTMENTS, isLeadRole, departmentFromRole } from '../../../data/departments';
 
 export default function ProfileTab({ dashboardProfile, setDashboardProfile, dashboardPassword, setDashboardPassword }) {
+  const role = dashboardProfile.role || 'Member';
+  // Leads belong to the department baked into their role; only plain members
+  // can pick/change their HackClub department here.
+  const isLead = isLeadRole(role);
+  const department = isLead ? departmentFromRole(role) : (dashboardProfile.department || '');
   return (
     <section className="panel-section">
       <div className="section-head">
@@ -55,9 +61,9 @@ export default function ProfileTab({ dashboardProfile, setDashboardProfile, dash
           
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="eyebrow" style={{ margin: 0 }}>Role: Member</span>
+              <span className="eyebrow" style={{ margin: 0 }}>Role: {role}</span>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 8px', background: 'rgba(255, 85, 85, 0.1)', color: '#ff5555', borderRadius: '4px', border: '1px solid rgba(255, 85, 85, 0.2)' }}>
-                Reviewer Access: No
+                Reviewer Access: {dashboardProfile.isReviewer ? 'Yes' : 'No'}
               </span>
             </div>
             <BadgeList badges={dashboardProfile.badges} />
@@ -92,14 +98,27 @@ export default function ProfileTab({ dashboardProfile, setDashboardProfile, dash
               />
             </label>
             <label>
-              Department
-              <input 
-                type="text" 
-                value={dashboardProfile.department || ''} 
-                onChange={(e) => setDashboardProfile((prev) => ({ ...prev, department: e.target.value }))}
-                placeholder="e.g. Computer Science" 
-                style={{ marginTop: '8px', width: '100%' }} 
-              />
+              HackClub Department
+              {isLead ? (
+                <input
+                  type="text"
+                  value={department}
+                  readOnly
+                  title="Your department is set by your lead role."
+                  style={{ marginTop: '8px', width: '100%', opacity: 0.7, cursor: 'not-allowed' }}
+                />
+              ) : (
+                <select
+                  value={department}
+                  onChange={(e) => setDashboardProfile((prev) => ({ ...prev, department: e.target.value }))}
+                  style={{ marginTop: '8px', width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.02)', color: 'var(--text)', fontFamily: 'inherit', fontSize: 'inherit', cursor: 'pointer' }}
+                >
+                  <option value="" style={{ background: '#120202' }}>— Select your department —</option>
+                  {HACKCLUB_DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept} style={{ background: '#120202' }}>{dept}</option>
+                  ))}
+                </select>
+              )}
             </label>
             <label>
               Phone Number

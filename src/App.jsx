@@ -24,7 +24,6 @@ function App() {
   const [globalUploads, setGlobalUploads] = useState([])
   const [globalActivities, setGlobalActivities] = useState([])
   const [globalEvents, setGlobalEvents] = useState([])
-  const [globalTeamUpdates, setGlobalTeamUpdates] = useState([])
   const [globalFeedbacks, setGlobalFeedbacks] = useState([])
   const [globalSystemStatus, setGlobalSystemStatus] = useState([])
   const [globalAnalytics, setGlobalAnalytics] = useState({
@@ -52,7 +51,6 @@ function App() {
       setGlobalUploads(data.uploads || [])
       setGlobalActivities(data.recentActivities || [])
       setGlobalEvents(data.eventsList || [])
-      setGlobalTeamUpdates(data.teamUpdates || [])
       setGlobalFeedbacks(data.feedbacks || [])
       setGlobalSystemStatus(data.systemStatus || [])
       setGlobalWeeklyWinners(data.weeklyWinners || {})
@@ -178,19 +176,6 @@ function App() {
     }
   }
 
-  const handleSetGlobalTeamUpdates = async (updater) => {
-    const next = typeof updater === 'function' ? updater(globalTeamUpdates) : updater
-    setGlobalTeamUpdates(next)
-    try {
-      await fetch('/api/team-updates', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
-    } catch (e) {
-      console.error('Error saving team updates:', e)
-    }
-  }
 
   const handleSetGlobalFeedbacks = async (updater) => {
     const next = typeof updater === 'function' ? updater(globalFeedbacks) : updater
@@ -297,7 +282,6 @@ function App() {
     setGlobalUploads([])
     setGlobalActivities([])
     setGlobalEvents([])
-    setGlobalTeamUpdates([])
     setGlobalFeedbacks([])
     setGlobalSystemStatus([])
   }
@@ -343,8 +327,6 @@ function App() {
           setGlobalActivities={handleSetGlobalActivities}
           globalEvents={globalEvents}
           setGlobalEvents={handleSetGlobalEvents}
-          globalTeamUpdates={globalTeamUpdates}
-          setGlobalTeamUpdates={handleSetGlobalTeamUpdates}
           globalFeedbacks={globalFeedbacks}
           setGlobalFeedbacks={handleSetGlobalFeedbacks}
           globalAnalytics={globalAnalytics}
@@ -380,6 +362,8 @@ function App() {
           setGlobalRecruitmentApplications={setGlobalRecruitmentApplications}
           globalAllowlist={globalAllowlist}
           setGlobalAllowlist={setGlobalAllowlist}
+          globalProfile={globalProfile}
+          setGlobalProfile={handleSetGlobalProfile}
         />
       )}
     </div>

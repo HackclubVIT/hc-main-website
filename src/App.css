@@ -161,6 +161,32 @@
   font-size: clamp(1.4rem, 2vw, 2.1rem);
 }
 
+.admin-header .header-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.badge-primary {
+  background: rgba(208, 125, 34, 0.16);
+  color: var(--highlight);
+  border: 1px solid rgba(208, 125, 34, 0.3);
+}
+
 .header-actions {
   display: flex;
   gap: 12px;
@@ -733,14 +759,19 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   position: relative;
 }
 
-.announcement-card .pill {
+.pill {
   display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
   padding: 6px 12px;
   border-radius: 999px;
   background: rgba(208, 125, 34, 0.14);
   color: var(--highlight);
-  margin-bottom: 16px;
   font-size: 0.85rem;
+}
+
+.announcement-card .pill {
+  margin-bottom: 16px;
 }
 
 .announcement-card h3 {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HACKCLUB_DEPARTMENTS, ASSIGNABLE_ROLES, isLeadRole, departmentFromRole } from '../../../data/departments';
 
 export default function AdminManageUsers({ users, setUsers, activities, projects }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +22,19 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
     setUsers(users.map(u => u.id === id ? { ...u, isReviewer: !currentStatus } : u));
   };
 
+  // Changing role to a "<Dept> Lead" also pins their department to that team so
+  // the lead and member team views stay in sync.
+  const changeRole = (id, role) => {
+    const leadDept = departmentFromRole(role);
+    setUsers(users.map(u => u.id === id
+      ? { ...u, role, ...(leadDept ? { department: leadDept } : {}) }
+      : u));
+  };
+
+  const changeDepartment = (id, department) => {
+    setUsers(users.map(u => u.id === id ? { ...u, department } : u));
+  };
+
   const removeUser = (id) => {
     if(window.confirm('Are you sure you want to remove this account?')) {
       setUsers(users.filter(u => u.id !== id));
@@ -32,7 +46,7 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
     const userEmail = selectedUser.email || `${selectedUser.name.toLowerCase().replace(' ', '.')}@vitstudent.ac.in`;
     const userRegNo = selectedUser.registerNumber || `21BCE${1000 + (selectedUser.id % 9000)}`;
     const userPhone = selectedUser.phoneNumber || `+91 98765 ${43210 + (selectedUser.id % 1000)}`;
-    const userDept = selectedUser.department || 'Computer Science & Engineering';
+    const userDept = selectedUser.department || departmentFromRole(selectedUser.role) || 'Not set';
     const userLinkedin = `linkedin.com/in/${selectedUser.name.replace(/\s+/g, '').toLowerCase()}`;
     const userGithub = selectedUser.github || `github.com/${selectedUser.name.replace(/\s+/g, '').toLowerCase()}`;
     const userPortfolio = selectedUser.portfolio || `${selectedUser.name.replace(/\s+/g, '').toLowerCase()}.dev`;
@@ -334,16 +348,17 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
       </div>
       
       <div className="table-card" style={{ overflow: 'visible' }}>
-        <div className="table-row table-head" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 200px 150px', gap: '16px' }}>
+        <div className="table-row table-head" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.2fr 1.2fr 1fr 1fr 200px 150px', gap: '16px' }}>
           <div>Name</div>
           <div>Role</div>
+          <div>Department</div>
           <div>Status</div>
           <div>Reviewer Access</div>
           <div>Badges</div>
           <div>Actions</div>
         </div>
         {filteredUsers.map((user) => (
-          <div key={user.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 200px 150px', gap: '16px', alignItems: 'center', position: 'relative', zIndex: openBadgeDropdownId === user.id ? 10 : 1 }}>
+          <div key={user.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.2fr 1.2fr 1fr 1fr 200px 150px', gap: '16px', alignItems: 'center', position: 'relative', zIndex: openBadgeDropdownId === user.id ? 10 : 1 }}>
             <div 
               style={{ cursor: 'pointer', color: '#ffffff', fontWeight: 'bold' }}
               onClick={() => setSelectedUser(user)}
@@ -351,27 +366,43 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
               {user.name}
             </div>
             <div>
-              <select 
-                value={user.role} 
-                onChange={(e) => setUsers(users.map(u => u.id === user.id ? { ...u, role: e.target.value } : u))}
-                style={{ 
-                  background: 'transparent', 
-                  color: 'var(--text)', 
-                  border: '1px solid rgba(255,255,255,0.1)', 
-                  borderRadius: '8px', 
+              <select
+                value={ASSIGNABLE_ROLES.includes(user.role) ? user.role : 'Member'}
+                onChange={(e) => changeRole(user.id, e.target.value)}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
                   padding: '6px 12px',
                   outline: 'none',
                   cursor: 'pointer',
                   width: '100%'
                 }}
               >
-                <option style={{ background: 'rgba(18, 2, 2, 0.98)' }}>Admin</option>
-                <option style={{ background: 'rgba(18, 2, 2, 0.98)' }}>Member</option>
-                <option style={{ background: 'rgba(18, 2, 2, 0.98)' }}>Lead</option>
-                <option style={{ background: 'rgba(18, 2, 2, 0.98)' }}>Vice Chairperson</option>
-                <option style={{ background: 'rgba(18, 2, 2, 0.98)' }}>Secretary</option>
-                <option style={{ background: 'rgba(18, 2, 2, 0.98)' }}>Co Secretary</option>
+                {ASSIGNABLE_ROLES.map((role) => (
+                  <option key={role} style={{ background: 'rgba(18, 2, 2, 0.98)' }}>{role}</option>
+                ))}
               </select>
+            </div>
+            <div>
+              {isLeadRole(user.role) ? (
+                // A lead's department is fixed by their role.
+                <span className="pill" style={{ background: 'rgba(208,125,34,0.15)', color: 'var(--amber, #d07d22)' }}>{departmentFromRole(user.role)}</span>
+              ) : user.role === 'Member' ? (
+                <select
+                  value={user.department || ''}
+                  onChange={(e) => changeDepartment(user.id, e.target.value || null)}
+                  style={{ background: 'transparent', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', outline: 'none', cursor: 'pointer', width: '100%' }}
+                >
+                  <option value="" style={{ background: 'rgba(18, 2, 2, 0.98)' }}>— None —</option>
+                  {HACKCLUB_DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept} style={{ background: 'rgba(18, 2, 2, 0.98)' }}>{dept}</option>
+                  ))}
+                </select>
+              ) : (
+                <span style={{ color: 'var(--text-muted)' }}>—</span>
+              )}
             </div>
             <div><span className={`status-pill status-${user.status.toLowerCase()}`}>{user.status}</span></div>
             <div>
@@ -479,12 +510,9 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
               <label>
                 Initial Role
                 <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} style={{ marginTop: '8px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', color: 'var(--text)' }}>
-                  <option>Admin</option>
-                  <option>Member</option>
-                  <option>Lead</option>
-                  <option>Vice Chairperson</option>
-                  <option>Secretary</option>
-                  <option>Co Secretary</option>
+                  {ASSIGNABLE_ROLES.map((role) => (
+                    <option key={role}>{role}</option>
+                  ))}
                 </select>
               </label>
               <button 
@@ -494,12 +522,13 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
                   if (!inviteEmail) return window.alert('Please enter an email address.');
                   const namePrefix = inviteEmail.split('@')[0];
                   const newUserName = namePrefix.charAt(0).toUpperCase() + namePrefix.slice(1);
-                  setUsers([{ 
-                    id: Date.now(), 
-                    name: newUserName, 
-                    role: inviteRole, 
-                    status: 'Pending', 
-                    isReviewer: false, 
+                  setUsers([{
+                    id: Date.now(),
+                    name: newUserName,
+                    role: inviteRole,
+                    department: departmentFromRole(inviteRole),
+                    status: 'Pending',
+                    isReviewer: false,
                     totalScore: 0, 
                     projectsUploaded: 0, 
                     averageRating: '0.0', 

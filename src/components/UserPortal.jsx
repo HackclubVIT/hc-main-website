@@ -7,9 +7,11 @@ import EvaluateTab from './user/Evaluate/EvaluateTab'
 import ActivityTab from './user/Activity/ActivityTab'
 import AnalyticsTab from './user/Analytics/AnalyticsTab'
 import TeamTab from './user/Team/TeamTab'
+import LeadDepartmentTab from './user/LeadDepartment/LeadDepartmentTab'
 import UpdatesTab from './user/Updates/UpdatesTab'
 import NotificationsTab from './user/Notifications/NotificationsTab'
 import EventsTab from './user/Events/EventsTab'
+import { isLeadRole, departmentFromRole } from '../data/departments'
 
 export default function UserPortal({ 
   onLogout, 
@@ -24,8 +26,6 @@ export default function UserPortal({
   setGlobalActivities,
   globalEvents,
   setGlobalEvents,
-  globalTeamUpdates,
-  setGlobalTeamUpdates,
   globalFeedbacks,
   setGlobalFeedbacks,
   globalAnalytics,
@@ -37,6 +37,12 @@ export default function UserPortal({
   setGlobalContributions
 }) {
   const [userSection, setUserSection] = useState('overview')
+
+  // Lead detection: a lead's department is encoded in their role; a plain
+  // member's department comes from their profile field.
+  const role = globalProfile.role || 'Member'
+  const isLead = isLeadRole(role)
+  const myDepartment = isLead ? departmentFromRole(role) : (globalProfile.department || null)
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false)
   const [showContactForm, setShowContactForm] = useState(false)
   const [contactData, setContactData] = useState({ email: '', subject: '', message: '' })
@@ -67,7 +73,9 @@ export default function UserPortal({
       case 'leaderboard':
         return <Leaderboard users={globalUsers} projects={globalProjects} weeklyWinners={globalWeeklyWinners} monthlyWinners={globalMonthlyWinners} />
       case 'team':
-        return <TeamTab dashboardTeamUpdates={globalTeamUpdates} setDashboardTeamUpdates={setGlobalTeamUpdates} />
+        return <TeamTab users={globalUsers} department={myDepartment} currentUserEmail={globalProfile.email} />
+      case 'department':
+        return <LeadDepartmentTab users={globalUsers} projects={globalProjects} department={myDepartment} />
       case 'updates':
         return <UpdatesTab globalAnnouncements={globalAnnouncements} />
       case 'notifications':
@@ -173,6 +181,16 @@ export default function UserPortal({
               <span>👥</span>
               <span>Team</span>
             </button>
+            {isLead && (
+              <button
+                className={`nav-link ${userSection === 'department' ? 'active' : ''}`}
+                onClick={() => setUserSection('department')}
+                title="My Department"
+              >
+                <span>🧭</span>
+                <span>My Department</span>
+              </button>
+            )}
             <button
               className={`nav-link ${userSection === 'updates' ? 'active' : ''}`}
               onClick={() => {
@@ -217,14 +235,17 @@ export default function UserPortal({
       </aside>
       <div className="user-layout">
         <header className="admin-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="header-identity">
+            <div>
+              <p className="eyebrow">{isLead ? 'Lead Dashboard' : 'User Dashboard'}</p>
+              <h1>Welcome back, {globalProfile.name}</h1>
+            </div>
+            {isLead && (
+              <span className="badge badge-primary">{myDepartment} Lead</span>
+            )}
             {globalProfile.isReviewer && (
               <span className="badge badge-primary">Reviewer</span>
             )}
-            <div>
-              <p className="eyebrow">User Dashboard</p>
-              <h1>Welcome back, {globalProfile.name}</h1>
-            </div>
           </div>
           <div className="header-actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="button button-secondary" type="button" onClick={() => setUserSection('overview')} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>

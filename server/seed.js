@@ -23,6 +23,7 @@ function mapUser(u) {
     email: u.email ?? null,
     password: u.password ?? null,
     role: u.role ?? 'Member',
+    department: u.department ?? null,
     status: u.status ?? 'Active',
     isReviewer: !!u.isReviewer,
     projectsUploaded: Number(u.projectsUploaded ?? 0),

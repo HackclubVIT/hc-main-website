@@ -38,8 +38,16 @@ export default function AdminPortal({
   globalRecruitmentApplications,
   setGlobalRecruitmentApplications,
   globalAllowlist,
-  setGlobalAllowlist
+  setGlobalAllowlist,
+  globalProfile,
+  setGlobalProfile
 }) {
+  // Vice Chairperson, Secretary and Co Secretary get the exact same admin
+  // functionality as Admin, but each sees their own name/designation/profile —
+  // this portal is never shared/merged between them.
+  const myName = globalProfile?.name || 'Admin'
+  const myRole = globalProfile?.role || 'Admin'
+  const myInitial = myName.charAt(0).toUpperCase() || 'A'
   const [activeSection, setActiveSection] = useState('Dashboard')
 
   // UI state
@@ -89,7 +97,7 @@ export default function AdminPortal({
       case 'System':
         return <SystemTab adminSystemStatus={globalSystemStatus} />
       case 'Profile':
-        return <ProfileTab />
+        return <ProfileTab dashboardProfile={globalProfile} setDashboardProfile={setGlobalProfile} />
       default:
         return <DashboardTab adminUploads={globalUploads} globalAnnouncements={globalAnnouncements} users={globalUsers} projects={globalProjects} />
     }
@@ -109,6 +117,8 @@ export default function AdminPortal({
     setGlobalUploads,
     setGlobalUsers,
     setGlobalWeeklyWinners,
+    globalProfile,
+    setGlobalProfile,
     globalRecruitmentApplications,
     setGlobalRecruitmentApplications,
     globalAllowlist,
@@ -187,11 +197,14 @@ export default function AdminPortal({
       </aside>
       <div className="admin-layout">
         <header className="admin-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="header-identity">
             <div>
-              <p className="eyebrow">Admin Portal {activeSection !== 'Dashboard' ? `• ${activeSection}` : ''}</p>
-              <h1>Welcome back, Admin</h1>
+              <p className="eyebrow">{myRole} Portal {activeSection !== 'Dashboard' ? `• ${activeSection}` : ''}</p>
+              <h1>Welcome back, {myName}</h1>
             </div>
+            {myRole !== 'Admin' && (
+              <span className="badge badge-primary">{myRole}</span>
+            )}
           </div>
           <div className="header-actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button className="button button-secondary" type="button" onClick={() => setActiveSection('Dashboard')} style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -204,9 +217,15 @@ export default function AdminPortal({
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
                 <div className="avatar" style={{ width: '32px', height: '32px' }}>
-                  <span className="avatar-initial" style={{ fontSize: '16px' }}>A</span>
+                  {globalProfile?.avatar && globalProfile.avatar.startsWith('emoji:') ? (
+                    <span className="avatar-emoji" style={{ fontSize: '16px' }}>{globalProfile.avatar.replace('emoji:', '')}</span>
+                  ) : globalProfile?.avatar ? (
+                    <img src={globalProfile.avatar} alt="avatar" />
+                  ) : (
+                    <span className="avatar-initial" style={{ fontSize: '16px' }}>{myInitial}</span>
+                  )}
                 </div>
-                <span style={{ fontWeight: '500' }}>Admin</span>
+                <span style={{ fontWeight: '500' }}>{myName}</span>
                 <span style={{ fontSize: '12px' }}>▼</span>
               </div>
               {showAdminProfileDropdown && (

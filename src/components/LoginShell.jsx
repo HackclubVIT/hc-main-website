@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import PasswordChecklist from './PasswordChecklist'
+import { HACKCLUB_DEPARTMENTS } from '../data/departments'
 
 export default function LoginShell({ onLogin, onBackToLanding }) {
   const [loginMode, setLoginMode] = useState('user')
@@ -27,7 +28,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
   
   // Signup States
   const [isSignUp, setIsSignUp] = useState(false)
-  const [signUpData, setSignUpData] = useState({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '' })
+  const [signUpData, setSignUpData] = useState({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '', department: '' })
 
   // OTP Login States
   const [authMethod, setAuthMethod] = useState('otp') // 'otp' or 'password'
@@ -148,11 +149,11 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
 
     setLoading(true);
     try {
-      const res = await api.signup(signUpData.name, trimmedEmail, signUpData.password, trimmedReg);
+      const res = await api.signup(signUpData.name, trimmedEmail, signUpData.password, trimmedReg, signUpData.department);
       setSuccessMessage(res.message || 'Registration successful! You can now log in.');
       setIsSignUp(false);
       setCredentials(prev => ({ ...prev, email: trimmedEmail }));
-      setSignUpData({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '' });
+      setSignUpData({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '', department: '' });
     } catch (err) {
       setError(err.message || 'Failed to sign up. Account may already exist.');
     } finally {
@@ -389,6 +390,20 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   placeholder="name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in"
                   style={{ marginBottom: '12px' }}
                 />
+              </label>
+
+              <label>
+                HackClub Department (optional)
+                <select
+                  value={signUpData.department}
+                  onChange={(event) => setSignUpData((prev) => ({ ...prev, department: event.target.value }))}
+                  style={{ marginBottom: '12px', width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.02)', color: 'var(--text)', fontFamily: 'inherit', fontSize: 'inherit', cursor: 'pointer' }}
+                >
+                  <option value="" style={{ background: '#120202' }}>Select your department (you can set this later)</option>
+                  {HACKCLUB_DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept} style={{ background: '#120202' }}>{dept}</option>
+                  ))}
+                </select>
               </label>
 
               <label>

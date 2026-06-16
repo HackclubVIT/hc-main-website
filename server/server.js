@@ -65,6 +65,7 @@ function mapUser(u) {
     email: u.email ?? null,
     password: u.password ?? null,
     role: u.role ?? 'Member',
+    department: u.department ?? null,
     status: u.status ?? 'Active',
     isReviewer: !!u.isReviewer,
     projectsUploaded: Number(u.projectsUploaded ?? 0),
@@ -183,10 +184,14 @@ function resolveDisplayName(email, dbUser) {
   return nameParts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ') || 'Member';
 }
 
+// Roles that share the full Admin portal. Vice Chairperson, Secretary and
+// Co Secretary are treated exactly like Admin; leads + members log in as 'user'.
+const ADMIN_TIER_ROLES = ['admin', 'vice chairperson', 'secretary', 'co secretary'];
+
 function resolveRole(email, dbUser, requested) {
   if (email === 'admin@vitstudent.ac.in') return 'admin';
   if (email === 'user@vitstudent.ac.in') return 'user';
-  if (dbUser) return (dbUser.role || '').toLowerCase() === 'admin' ? 'admin' : 'user';
+  if (dbUser) return ADMIN_TIER_ROLES.includes((dbUser.role || '').toLowerCase()) ? 'admin' : 'user';
   return requested || 'user';
 }
 
@@ -298,8 +303,11 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Signup — gated by the admin-managed allowlist + email format.
+// HackClub departments a member may belong to (kept in sync with src/data/departments.js).
+const HACKCLUB_DEPARTMENTS = ['Projects', 'Finance', 'Design', 'Research and Development', 'Operations', 'Technical'];
+
 app.post('/api/auth/signup', async (req, res) => {
-  const { email, password, name, registerNumber } = req.body;
+  const { email, password, name, registerNumber, department } = req.body;
   if (!email || !password || !name || !registerNumber) return res.status(400).json({ error: 'Please fill in all fields.' });
   if (!validateEmail(email)) {
     return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
@@ -308,6 +316,12 @@ app.post('/api/auth/signup', async (req, res) => {
   const regNo = String(registerNumber).trim().toUpperCase();
   if (!/^[0-9]{2}[A-Z]{3}[0-9]{4}$/.test(regNo)) {
     return res.status(400).json({ error: 'Enter a valid VIT register number (e.g., 24BCE1234).' });
+  }
+
+  // Department is optional at signup; if provided it must be a known department.
+  const dept = (department || '').trim();
+  if (dept && !HACKCLUB_DEPARTMENTS.includes(dept)) {
+    return res.status(400).json({ error: 'Please select a valid HackClub department.' });
   }
 
   const allowed = await isEmailAllowed(email);
@@ -328,6 +342,7 @@ app.post('/api/auth/signup', async (req, res) => {
       email,
       password,
       registerNumber: regNo,
+      department: dept || null,
       role: 'Member',
       status: 'Active',
       badges: ['New Maker'],
@@ -450,6 +465,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
   const profile = {
     name: dbUser.name,
     role: dbUser.role,
+    department: dbUser.department || null,
     registerNumber: dbUser.registerNumber || '24BCE' + (Number(dbUser.id % 9000n) + 1000),
     email: dbUser.email,
     phoneNumber: dbUser.phoneNumber || '+91 98765 ' + (Number(dbUser.id % 90000n) + 10000),
@@ -662,7 +678,9 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
         portfolio: profileUpdate.portfolio || dbUser.portfolio,
         avatar: profileUpdate.avatar || dbUser.avatar,
         registerNumber: profileUpdate.registerNumber || dbUser.registerNumber,
-        location: profileUpdate.location || dbUser.location
+        location: profileUpdate.location || dbUser.location,
+        // Allow members to set/clear their own HackClub department.
+        department: profileUpdate.department !== undefined ? (profileUpdate.department || null) : dbUser.department
       }
     });
   }
