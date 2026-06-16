@@ -6,6 +6,7 @@ import LoginShell from './components/LoginShell'
 import LaunchScreen from './components/LaunchScreen'
 import UserPortal from './components/UserPortal'
 import AdminPortal from './components/AdminPortal'
+import RecruitmentPortal from './components/RecruitmentPortal'
 import { api, getToken, clearToken } from './api'
 
 function App() {
@@ -35,8 +36,10 @@ function App() {
   const [globalMonthlyWinners, setGlobalMonthlyWinners] = useState({})
   const [globalProfile, setGlobalProfile] = useState({})
   const [globalContributions, setGlobalContributions] = useState([])
+  const [globalRecruitmentApplications, setGlobalRecruitmentApplications] = useState([])
   
   const [readAnnouncementsCount, setReadAnnouncementsCount] = useState(0)
+  const [showRecruitment, setShowRecruitment] = useState(false)
 
   // Fetch all global data from the backend
   const fetchGlobalData = async () => {
@@ -55,6 +58,7 @@ function App() {
       setGlobalMonthlyWinners(data.monthlyWinners || {})
       setGlobalProfile(data.profile || {})
       setGlobalContributions(data.contributions || [])
+      setGlobalRecruitmentApplications(data.recruitmentApplications || [])
       setReadAnnouncementsCount(data.announcements?.length || 0)
     } catch (err) {
       console.error('Error fetching global database state:', err)
@@ -309,7 +313,11 @@ function App() {
   }
 
   if (showLanding) {
-    return <HackClubLanding onLogin={() => setShowLanding(false)} />
+    return <HackClubLanding onLogin={() => setShowLanding(false)} onOpenRecruitment={() => { setShowLanding(false); setShowRecruitment(true); }} />
+  }
+
+  if (showRecruitment) {
+    return <RecruitmentPortal onBack={() => { setShowRecruitment(false); setShowLanding(true); }} />
   }
 
   return (
@@ -366,6 +374,8 @@ function App() {
           setGlobalWeeklyWinners={handleSetGlobalWeeklyWinners}
           globalMonthlyWinners={globalMonthlyWinners}
           setGlobalMonthlyWinners={handleSetGlobalMonthlyWinners}
+          globalRecruitmentApplications={globalRecruitmentApplications}
+          setGlobalRecruitmentApplications={setGlobalRecruitmentApplications}
         />
       )}
     </div>

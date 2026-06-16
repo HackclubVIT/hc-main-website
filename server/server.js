@@ -130,14 +130,15 @@ app.post('/api/auth/send-otp', async (req, res) => {
     `
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
+  // Send OTP email asynchronously in the background so the server responds immediately.
+  // This prevents SMTP delays from causing client/proxy timeout errors like "Unexpected end of JSON input".
+  transporter.sendMail(mailOptions).then(() => {
     console.log(`[OTP] Sent successfully to ${email}`);
-    return res.json({ success: true, message: 'OTP sent to your email.' });
-  } catch (err) {
+  }).catch((err) => {
     console.error('SMTP sending error:', err);
-    return res.status(500).json({ error: 'Failed to send email. Please check your credentials or try again later.' });
-  }
+  });
+
+  return res.json({ success: true, message: 'OTP sent to your email.' });
 });
 
 // Login via OTP Endpoint
@@ -681,6 +682,114 @@ app.put('/api/monthly-winners', authenticateToken, async (req, res) => {
   db.monthlyWinners = req.body;
   await writeDB(db);
   res.json(db);
+});
+
+// Submit recruitment application (Public)
+app.post('/api/recruitment/apply', async (req, res) => {
+  const { name, registerNumber, email, phoneNumber, domain, yearOfStudy, github, linkedin, whyJoin, projectDetails } = req.body;
+
+  if (!name || !registerNumber || !email || !domain || !yearOfStudy) {
+    return res.status(400).json({ error: 'Please fill in all required fields.' });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
+  }
+
+  const db = await readDB();
+  if (!db.recruitmentApplications) db.recruitmentApplications = [];
+
+  // Check if already applied
+  const alreadyApplied = db.recruitmentApplications.some(app => app.email === email || app.registerNumber === registerNumber);
+  if (alreadyApplied) {
+    return res.status(400).json({ error: 'An application with this email or register number has already been submitted.' });
+  }
+
+  const newApplication = {
+    id: Date.now(),
+    name,
+    registerNumber,
+    email,
+    phoneNumber: phoneNumber || '',
+    domain,
+    yearOfStudy,
+    github: github || '',
+    linkedin: linkedin || '',
+    whyJoin: whyJoin || '',
+    projectDetails: projectDetails || '',
+    status: 'Pending', // Pending, Accepted, Rejected
+    appliedDate: new Date().toISOString().split('T')[0]
+  };
+
+  db.recruitmentApplications.push(newApplication);
+  await writeDB(db);
+
+  return res.status(201).json({ success: true, message: 'Application submitted successfully!' });
+});
+
+// Fetch all recruitment applications (Admin only)
+app.get('/api/recruitment/applications', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden: Admin access only.' });
+  }
+
+  const db = await readDB();
+  return res.json(db.recruitmentApplications || []);
+});
+
+// Update recruitment application status (Admin only)
+app.put('/api/recruitment/applications/:id/status', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden: Admin access only.' });
+  }
+
+  const { id } = req.params;
+  const { status } = req.body; // 'Accepted' or 'Rejected'
+
+  if (status !== 'Accepted' && status !== 'Rejected') {
+    return res.status(400).json({ error: 'Invalid status update.' });
+  }
+
+  const db = await readDB();
+  if (!db.recruitmentApplications) db.recruitmentApplications = [];
+
+  const appIndex = db.recruitmentApplications.findIndex(a => a.id === parseInt(id, 10));
+  if (appIndex === -1) {
+    return res.status(404).json({ error: 'Application not found.' });
+  }
+
+  const application = db.recruitmentApplications[appIndex];
+  application.status = status;
+
+  // If Accepted, automatically register as a club member
+  if (status === 'Accepted') {
+    if (!db.users) db.users = [];
+    const userExists = db.users.some(u => u.email === application.email);
+    if (!userExists) {
+      const newUser = {
+        id: Date.now(),
+        name: application.name,
+        email: application.email,
+        registerNumber: application.registerNumber,
+        phoneNumber: application.phoneNumber,
+        role: 'Member',
+        status: 'Active',
+        isReviewer: false,
+        projectsUploaded: 0,
+        averageRating: '0.0',
+        badges: ['New Maker'],
+        recentProjects: [],
+        projectRatingScore: 0,
+        contributionScore: 10,
+        eventScore: 5,
+        totalScore: 7
+      };
+      db.users.push(newUser);
+    }
+  }
+
+  await writeDB(db);
+  return res.json({ success: true, applications: db.recruitmentApplications });
 });
 
 // Launch server
