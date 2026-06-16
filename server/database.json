@@ -441,5 +441,22 @@
       "label": "Events hosted",
       "value": "6"
     }
+  ],
+  "recruitmentApplications": [
+    {
+      "id": 1781614953204,
+      "name": "Ojas Singh",
+      "registerNumber": "24BCE5270",
+      "email": "ojas.singh2024@vitstudent.ac.in",
+      "phoneNumber": "+919324353240",
+      "domain": "Web Development",
+      "yearOfStudy": "1st",
+      "github": "",
+      "linkedin": "",
+      "whyJoin": "i love this club.",
+      "projectDetails": "many things",
+      "status": "Rejected",
+      "appliedDate": "2026-06-16"
+    }
   ]
 }

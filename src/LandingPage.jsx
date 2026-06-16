@@ -853,9 +853,9 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
             <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               Apply now
             </a>
-            <a className="hc-btn ghost" href="mailto:hello@hackclub.example">
+            {/* <a className="hc-btn ghost" href="mailto:hello@hackclub.example">
               hello@hackclub.example
-            </a>
+            </a> */}
           </div>
           <div className="hc-footer-meta">
             <span>© 2026 HACKCLUB</span>

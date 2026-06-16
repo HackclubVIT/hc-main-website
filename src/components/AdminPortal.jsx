@@ -15,6 +15,7 @@ import SystemTab from './admin/System/SystemTab'
 import ProfileTab from './admin/Profile/ProfileTab'
 import DashboardTab from './admin/Dashboard/DashboardTab'
 import RecruitmentTab from './admin/Recruitment/RecruitmentTab'
+import AllowlistTab from './admin/Allowlist/AllowlistTab'
 
 export default function AdminPortal({ 
   onLogout, 
@@ -35,7 +36,9 @@ export default function AdminPortal({
   setGlobalWeeklyWinners,
   globalMonthlyWinners,
   globalRecruitmentApplications,
-  setGlobalRecruitmentApplications
+  setGlobalRecruitmentApplications,
+  globalAllowlist,
+  setGlobalAllowlist
 }) {
   const [activeSection, setActiveSection] = useState('Dashboard')
 
@@ -65,12 +68,14 @@ export default function AdminPortal({
                   addAnnouncement={(ann) => setGlobalAnnouncements([ann, ...globalAnnouncements])} 
                />
       case 'Recruitment':
-        return <RecruitmentTab 
-                  applications={globalRecruitmentApplications} 
-                  setApplications={setGlobalRecruitmentApplications} 
-                  users={globalUsers} 
-                  setUsers={setGlobalUsers} 
+        return <RecruitmentTab
+                  applications={globalRecruitmentApplications}
+                  setApplications={setGlobalRecruitmentApplications}
+                  users={globalUsers}
+                  setUsers={setGlobalUsers}
                />
+      case 'Signup Allowlist':
+        return <AllowlistTab allowlist={globalAllowlist} setAllowlist={setGlobalAllowlist} />
       case 'Analytics':
         return <AnalyticsTab users={globalUsers} projects={globalProjects} />
       case 'Announcements':
@@ -105,7 +110,9 @@ export default function AdminPortal({
     setGlobalUsers,
     setGlobalWeeklyWinners,
     globalRecruitmentApplications,
-    setGlobalRecruitmentApplications
+    setGlobalRecruitmentApplications,
+    globalAllowlist,
+    setGlobalAllowlist
   ])
 
   return (

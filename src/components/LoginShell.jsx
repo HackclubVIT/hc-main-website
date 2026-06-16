@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
+import PasswordChecklist from './PasswordChecklist'
 
 export default function LoginShell({ onLogin, onBackToLanding }) {
   const [loginMode, setLoginMode] = useState('user')
@@ -7,8 +8,22 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
   const [forgotPasswordTimer, setForgotPasswordTimer] = useState(0)
-  const [forgotPasswordSent, setForgotPasswordSent] = useState(false)
+  const [forgotStage, setForgotStage] = useState('email') // 'email' | 'otp' | 'reset'
+  const [forgotOtp, setForgotOtp] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  const resetForgotFlow = () => {
+    setShowForgotPassword(false)
+    setForgotStage('email')
+    setForgotOtp('')
+    setNewPassword('')
+    setConfirmNewPassword('')
+    setForgotPasswordTimer(0)
+    setError('')
+    setSuccessMessage('')
+  }
   
   // Signup States
   const [isSignUp, setIsSignUp] = useState(false)
@@ -149,41 +164,178 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
         
         {showForgotPassword ? (
           <>
-            <p>Forgot your password? Enter your email to reset it.</p>
-            <form onSubmit={(event) => {
-              event.preventDefault();
-              if (forgotPasswordEmail) {
-                window.alert("If you have written the email correctly, you will receive the email");
-                setForgotPasswordSent(true);
-                setForgotPasswordTimer(90);
-              }
-            }}>
-              <label>
-                Email address
-                <input
-                  type="email"
-                  value={forgotPasswordEmail}
-                  onChange={(event) => setForgotPasswordEmail(event.target.value)}
-                  placeholder="Enter your email"
-                />
-              </label>
-              <button className="button button-primary" type="submit" disabled={forgotPasswordSent && forgotPasswordTimer > 0} onClick={() => {
-                if (forgotPasswordSent && forgotPasswordTimer === 0) {
-                    window.alert("Resent email. Kindly check your spam folder as well");
-                    setForgotPasswordTimer(90);
+            <p>
+              {forgotStage === 'email' && 'Forgot your password? Enter your email and we\'ll send you a verification code.'}
+              {forgotStage === 'otp' && 'Enter the 6-digit code we just emailed you.'}
+              {forgotStage === 'reset' && 'Code verified. Set your new password below.'}
+            </p>
+            {error && (
+              <div style={{ background: 'rgba(172, 18, 12, 0.1)', border: '1px solid var(--danger)', color: '#ffb4ab', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', marginBottom: '16px' }}>
+                {error}
+              </div>
+            )}
+            {successMessage && (
+              <div style={{ background: 'rgba(46, 125, 50, 0.1)', border: '1px solid var(--success)', color: '#b9f6ca', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', marginBottom: '16px' }}>
+                {successMessage}
+              </div>
+            )}
+
+            {/* Stage 1 — request a reset OTP */}
+            {forgotStage === 'email' && (
+              <form onSubmit={async (event) => {
+                event.preventDefault();
+                setError('');
+                setSuccessMessage('');
+                const email = forgotPasswordEmail ? forgotPasswordEmail.trim() : '';
+                if (!email) { setError('Please enter your email address.'); return; }
+                if (!validateEmail(email)) {
+                  setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
+                  return;
+                }
+                setLoading(true);
+                try {
+                  await api.forgotPassword(email);
+                  setForgotStage('otp');
+                  setForgotPasswordTimer(60);
+                  setSuccessMessage('A password reset OTP has been sent to your email. Check your inbox (and spam).');
+                } catch (err) {
+                  setError(err.message || 'No account found with this email.');
+                } finally {
+                  setLoading(false);
                 }
               }}>
-                {forgotPasswordSent ? (forgotPasswordTimer > 0 ? `Resend Email (${forgotPasswordTimer}s)` : 'Resend Email') : 'Submit'}
-              </button>
-              <button
-                className="button button-secondary"
-                type="button"
-                style={{ marginTop: '12px' }}
-                onClick={() => setShowForgotPassword(false)}
-              >
-                Back to login
-              </button>
-            </form>
+                <label>
+                  Email address
+                  <input
+                    type="email"
+                    value={forgotPasswordEmail}
+                    onChange={(event) => { setForgotPasswordEmail(event.target.value); setError(''); }}
+                    placeholder="name@vitstudent.ac.in"
+                  />
+                </label>
+                <button className="button button-primary" type="submit" disabled={loading} style={{ marginTop: '12px' }}>
+                  {loading ? 'Sending Code...' : 'Send Verification Code'}
+                </button>
+              </form>
+            )}
+
+            {/* Stage 2 — verify the OTP */}
+            {forgotStage === 'otp' && (
+              <form onSubmit={async (event) => {
+                event.preventDefault();
+                setError('');
+                if (!forgotOtp) { setError('Please enter the verification code.'); return; }
+                setLoading(true);
+                try {
+                  await api.verifyResetOtp(forgotPasswordEmail.trim(), forgotOtp);
+                  setForgotStage('reset');
+                  setSuccessMessage('');
+                } catch (err) {
+                  setError(err.message || 'Incorrect or expired code.');
+                } finally {
+                  setLoading(false);
+                }
+              }}>
+                <label>
+                  Verification Code (OTP)
+                  <input
+                    type="text"
+                    value={forgotOtp}
+                    onChange={(event) => { setForgotOtp(event.target.value); setError(''); }}
+                    placeholder="Enter 6-digit OTP"
+                    maxLength={6}
+                    style={{ fontFamily: 'monospace', letterSpacing: '4px', textAlign: 'center', fontSize: '1.2rem', marginBottom: '12px' }}
+                  />
+                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', fontSize: '0.85rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Didn't receive it? Check spam.</span>
+                  <button
+                    type="button"
+                    disabled={forgotPasswordTimer > 0 || loading}
+                    onClick={async () => {
+                      setError('');
+                      setLoading(true);
+                      try {
+                        await api.forgotPassword(forgotPasswordEmail.trim());
+                        setForgotPasswordTimer(60);
+                        setSuccessMessage('A new OTP has been sent to your email.');
+                      } catch (err) {
+                        setError(err.message || 'Failed to resend code.');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    style={{ background: 'none', border: 'none', color: forgotPasswordTimer > 0 ? 'var(--text-muted)' : 'var(--highlight)', cursor: forgotPasswordTimer > 0 ? 'default' : 'pointer', fontWeight: 'bold' }}
+                  >
+                    {forgotPasswordTimer > 0 ? `Resend in ${forgotPasswordTimer}s` : 'Resend Code'}
+                  </button>
+                </div>
+                <button className="button button-primary" type="submit" disabled={loading}>
+                  {loading ? 'Verifying...' : 'Verify Code'}
+                </button>
+              </form>
+            )}
+
+            {/* Stage 3 — set the new password */}
+            {forgotStage === 'reset' && (
+              <form onSubmit={async (event) => {
+                event.preventDefault();
+                setError('');
+                const passError = validatePassword(newPassword);
+                if (passError) { setError(passError); return; }
+                if (newPassword !== confirmNewPassword) { setError('Passwords do not match.'); return; }
+                setLoading(true);
+                try {
+                  await api.resetPassword(forgotPasswordEmail.trim(), forgotOtp, newPassword);
+                  const email = forgotPasswordEmail.trim();
+                  resetForgotFlow();
+                  setCredentials({ email, password: '' });
+                  setAuthMethod('password');
+                  setSuccessMessage('Password updated successfully. Please log in with your new password.');
+                } catch (err) {
+                  setError(err.message || 'Failed to reset password.');
+                } finally {
+                  setLoading(false);
+                }
+              }}>
+                <label>
+                  New Password
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => { setNewPassword(event.target.value); setError(''); }}
+                    placeholder="Create new password"
+                    style={{ marginBottom: '12px' }}
+                  />
+                </label>
+
+                <PasswordChecklist password={newPassword} />
+
+                <label>
+                  Confirm New Password
+                  <input
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(event) => { setConfirmNewPassword(event.target.value); setError(''); }}
+                    placeholder="Confirm new password"
+                    style={{ marginBottom: '12px' }}
+                  />
+                </label>
+
+                <button className="button button-primary" type="submit" disabled={loading}>
+                  {loading ? 'Updating...' : 'Reset Password'}
+                </button>
+              </form>
+            )}
+
+            <button
+              className="button button-secondary"
+              type="button"
+              style={{ marginTop: '12px' }}
+              onClick={resetForgotFlow}
+            >
+              Back to login
+            </button>
           </>
         ) : isSignUp ? (
           <>
@@ -232,6 +384,8 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   style={{ marginBottom: '12px' }}
                 />
               </label>
+
+              <PasswordChecklist password={signUpData.password} />
 
               <label>
                 Confirm Password
@@ -463,56 +617,8 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                     </div>
                   </label>
                   
-                  {credentials.password.length > 0 && (() => {
-                    const hasMinLength = credentials.password.length >= 8;
-                    const hasUpperCase = /[A-Z]/.test(credentials.password);
-                    const hasLowerCase = /[a-z]/.test(credentials.password);
-                    const hasDigit = /[0-9]/.test(credentials.password);
-                    const hasSpecial = /[^A-Za-z0-9]/.test(credentials.password);
-                    const hasIdenticalConsecutive = /([a-zA-Z0-9])\1/.test(credentials.password);
-                    let hasSequential = false;
-                    for (let i = 0; i < credentials.password.length - 1; i++) {
-                      let c1 = credentials.password.charCodeAt(i);
-                      let c2 = credentials.password.charCodeAt(i + 1);
-                      if ((c1 >= 48 && c1 <= 57 && c2 === c1 + 1) || 
-                          (c1 >= 97 && c1 <= 122 && c2 === c1 + 1) || 
-                          (c1 >= 65 && c1 <= 90 && c2 === c1 + 1)) {
-                        hasSequential = true;
-                        break;
-                      }
-                    }
-                    const hasNoSequential = !hasSequential;
-                    const hasNoIdentical = !hasIdenticalConsecutive;
-
-                    const CheckIcon = ({ met, failed }) => (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', marginRight: '6px' }}>
-                        {met ? (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        ) : failed ? (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        ) : (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
-                        )}
-                      </span>
-                    );
-
-                    return (
-                      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px', borderRadius: '12px', marginBottom: '16px', fontSize: '0.85rem' }}>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '10px' }}>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasMinLength ? 'var(--text)' : 'var(--text-muted)' }}><CheckIcon met={hasMinLength} /> 8 characters minimum</li>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasUpperCase ? 'var(--text)' : 'var(--text-muted)' }}><CheckIcon met={hasUpperCase} /> 1 uppercase letter</li>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasLowerCase ? 'var(--text)' : 'var(--text-muted)' }}><CheckIcon met={hasLowerCase} /> 1 lowercase letter</li>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasDigit ? 'var(--text)' : 'var(--text-muted)' }}><CheckIcon met={hasDigit} /> 1 digit</li>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasSpecial ? 'var(--text)' : 'var(--text-muted)' }}><CheckIcon met={hasSpecial} /> 1 special character</li>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasNoIdentical ? 'var(--text)' : 'var(--danger)' }}><CheckIcon met={hasNoIdentical} failed={!hasNoIdentical} /> No identical consecutive characters</li>
-                          <li style={{ display: 'flex', alignItems: 'center', color: hasNoSequential ? 'var(--text)' : 'var(--danger)' }}><CheckIcon met={hasNoSequential} failed={!hasNoSequential} /> No sequential characters</li>
-                        </ul>
-                      </div>
-                    );
-                  })()}
-
                   <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-                    <a href="#" style={{ color: 'var(--highlight)', fontSize: '0.85rem', textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); setShowForgotPassword(true); }}>Forgot Password?</a>
+                    <a href="#" style={{ color: 'var(--highlight)', fontSize: '0.85rem', textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); setShowForgotPassword(true); setForgotStage('email'); setForgotOtp(''); setNewPassword(''); setConfirmNewPassword(''); setForgotPasswordEmail(credentials.email || ''); setError(''); setSuccessMessage(''); }}>Forgot Password?</a>
                   </div>
                   <button className="button button-primary" type="submit" disabled={loading}>
                     {loading ? 'Signing In...' : 'Sign In'}

@@ -37,6 +37,7 @@ function App() {
   const [globalProfile, setGlobalProfile] = useState({})
   const [globalContributions, setGlobalContributions] = useState([])
   const [globalRecruitmentApplications, setGlobalRecruitmentApplications] = useState([])
+  const [globalAllowlist, setGlobalAllowlist] = useState([])
   
   const [readAnnouncementsCount, setReadAnnouncementsCount] = useState(0)
   const [showRecruitment, setShowRecruitment] = useState(false)
@@ -59,6 +60,7 @@ function App() {
       setGlobalProfile(data.profile || {})
       setGlobalContributions(data.contributions || [])
       setGlobalRecruitmentApplications(data.recruitmentApplications || [])
+      setGlobalAllowlist(data.allowedEmails || [])
       setReadAnnouncementsCount(data.announcements?.length || 0)
     } catch (err) {
       console.error('Error fetching global database state:', err)
@@ -376,6 +378,8 @@ function App() {
           setGlobalMonthlyWinners={handleSetGlobalMonthlyWinners}
           globalRecruitmentApplications={globalRecruitmentApplications}
           setGlobalRecruitmentApplications={setGlobalRecruitmentApplications}
+          globalAllowlist={globalAllowlist}
+          setGlobalAllowlist={setGlobalAllowlist}
         />
       )}
     </div>

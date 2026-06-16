@@ -1,0 +1,97 @@
+// HackClub VIT Chennai — Neon PostgreSQL schema (Prisma)
+// Run `npx prisma db push` after setting DATABASE_URL in server/.env
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Registered members / admins. Login (password + OTP) requires the email to
+// already exist here. New accounts are created via signup (gated by AllowedEmail).
+model User {
+  id                 BigInt  @id
+  name               String
+  email              String? @unique
+  password           String?
+  role               String  @default("Member")
+  status             String  @default("Active")
+  isReviewer         Boolean @default(false)
+  projectsUploaded   Int     @default(0)
+  averageRating      String  @default("0.0")
+  badges             Json    @default("[]")
+  recentProjects     Json    @default("[]")
+  projectRatingScore Int     @default(0)
+  contributionScore  Int     @default(10)
+  eventScore         Int     @default(5)
+  totalScore         Int     @default(7)
+  registerNumber     String?
+  phoneNumber        String?
+  location           String?
+  joined             String?
+  github             String?
+  portfolio          String?
+  avatar             String?
+
+  @@map("users")
+}
+
+model Project {
+  id                BigInt  @id
+  title             String
+  description       String?
+  github            String?
+  deployment        String?
+  status            String  @default("Pending")
+  owner             String?
+  rating            String  @default("0.0")
+  contributors      String?
+  submissionDate    String?
+  technologiesUsed  Json    @default("[]")
+  awards            Json    @default("[]")
+  individualRatings Json    @default("[]")
+
+  @@map("projects")
+}
+
+// Recruitment form submissions. Unique email + register number guarantee one
+// application per person.
+model RecruitmentApplication {
+  id             BigInt  @id
+  name           String
+  registerNumber String  @unique
+  email          String  @unique
+  phoneNumber    String?
+  domain         String
+  yearOfStudy    String
+  github         String?
+  linkedin       String?
+  whyJoin        String?
+  projectDetails String?
+  status         String  @default("Pending")
+  appliedDate    String?
+
+  @@map("recruitment_applications")
+}
+
+// Admin-managed allowlist. Only emails present here may create an account.
+model AllowedEmail {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  addedBy   String?
+  createdAt DateTime @default(now())
+
+  @@map("allowed_emails")
+}
+
+// Key/value store for the bulk collections the dashboard syncs wholesale
+// (announcements, uploads, events, feedbacks, winners, profile, etc.).
+model Collection {
+  name String @id
+  data Json
+
+  @@map("collections")
+}

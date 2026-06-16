@@ -87,6 +87,27 @@ export const api = {
     return data;
   },
 
+  async forgotPassword(email) {
+    return apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async verifyResetOtp(email, otp) {
+    return apiFetch('/auth/verify-reset-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+  },
+
+  async resetPassword(email, otp, newPassword) {
+    return apiFetch('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+  },
+
   async getMe() {
     return apiFetch('/auth/me');
   },
@@ -184,6 +205,24 @@ export const api = {
     return apiFetch(`/recruitment/applications/${applicationId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
+    });
+  },
+
+  // Signup Allowlist (Admin)
+  async getAllowlist() {
+    return apiFetch('/allowlist');
+  },
+
+  async addAllowedEmail(email) {
+    return apiFetch('/allowlist', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async removeAllowedEmail(id) {
+    return apiFetch(`/allowlist/${id}`, {
+      method: 'DELETE',
     });
   },
 };

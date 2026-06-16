@@ -4,17 +4,37 @@ Welcome to the HackClub VIT Chennai Member Portal! This application is a fully-f
 
 ## Quick Start
 
-The project requires **two terminals** — one for the backend API and one for the frontend dev server.
+The project requires **two terminals** — one for the backend API and one for the frontend dev server. The backend is powered by **PostgreSQL (Neon)** via **Prisma**, so a one-time database setup is needed first.
 
-**Terminal 1 — Backend**
+### 1. Configure the database connection
+
+Copy the example env file and paste your Neon connection string into it:
+
 ```bash
 cd server
-npm install
-node server.js
-# API server running at http://localhost:5000
+cp .env.example .env       # then edit server/.env
 ```
 
-**Terminal 2 — Frontend**
+In `server/.env`, set `DATABASE_URL` to your Neon connection string (Neon dashboard → **Connect** → pooled connection string, keep `?sslmode=require`):
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@ep-xxxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
+```
+
+> `server/.env` is git-ignored — your credentials are never committed.
+
+### 2. Backend (Terminal 1)
+
+```bash
+cd server
+npm install            # installs Express, Prisma, etc.
+npm run db:push        # creates the tables in your Neon database
+npm run db:seed        # (optional) ports existing data + demo accounts
+npm start              # API server running at http://localhost:5000
+```
+
+### 3. Frontend (Terminal 2)
+
 ```bash
 npm install
 npm run dev
@@ -22,6 +42,9 @@ npm run dev
 ```
 
 Vite automatically proxies all `/api` requests from `:5173` to `:5000`, so no CORS configuration is needed during development.
+
+**Demo accounts** (always allowed, shared password `Hackclub@2026`, or use OTP):
+`admin@vitstudent.ac.in` (admin) · `user@vitstudent.ac.in` (member).
 
 ---
 
@@ -40,34 +63,72 @@ This project is built using modern, fast, and scalable web technologies. All ver
 - **Routing**: React Router (Internal Shell Routing)
 - **Linting**: [ESLint](https://eslint.org/) `v10.3.0` with React Hooks & Refresh plugins.
 - **Transpilation**: Babel Core `v7.29.0` with React Compiler `v1.0.0`
+- **Backend**: [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/) `v4`
+- **Database**: [PostgreSQL](https://www.postgresql.org/) on [Neon](https://neon.tech/) via the [Prisma](https://www.prisma.io/) ORM `v5`
+- **Auth**: JWT (`jsonwebtoken`) + email OTP (`nodemailer`)
 
 ---
 
 ## Backend
 
-The backend lives in the `server/` directory and is a standalone Node.js Express server.
+The backend lives in the `server/` directory and is a standalone Node.js Express server backed by **PostgreSQL on [Neon](https://neon.tech/)** through the **[Prisma](https://www.prisma.io/) ORM**.
 
 - **Location**: `server/server.js`
 - **Port**: `5000` (override with the `PORT` environment variable)
-- **Stack**: Node.js + Express, `jsonwebtoken`, `nodemailer` (Gmail), JSON flat-file database (`server/database.json`)
+- **Stack**: Node.js + Express, Prisma + `@prisma/client`, PostgreSQL (Neon), `jsonwebtoken`, `nodemailer` (Gmail), `dotenv`
+- **Schema**: `server/prisma/schema.prisma`
 - **Dev proxy**: `vite.config.js` proxies `/api → http://localhost:5000`, so the frontend always calls `/api/*`
 
-### Authentication flow
-1. User enters a `@vitstudent.ac.in` email address.
-2. Backend sends a one-time passcode (OTP) via Gmail — valid for **5 minutes**.
-3. On verification, a JWT is issued with a **7-day** expiry and stored in `localStorage` as `hc_session_token`.
-4. On subsequent visits, `App.jsx` restores the session by calling `/api/auth/me` with the stored token.
+### Environment variables (`server/.env`)
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | Neon PostgreSQL connection string (**required**) |
+| `JWT_SECRET` | Secret used to sign session tokens |
+| `SMTP_USER` / `SMTP_PASS` | Gmail account + App Password for sending OTP emails |
+| `PORT` | API port (default `5000`) |
+
+### Database scripts (run from `server/`)
+| Command | What it does |
+|---------|--------------|
+| `npm run db:push` | Pushes the Prisma schema to Neon (creates/updates tables) |
+| `npm run db:seed` | Seeds users, projects, recruitment apps + demo accounts from `database.json` |
+| `npm run db:generate` | Regenerates the Prisma client (auto-runs on install) |
+| `npm run db:studio` | Opens Prisma Studio to browse the database |
+
+### Data model (Prisma)
+- **`User`** — registered members/admins. Login requires the email to exist here. Stores an optional per-user `password` (set at signup or via a password reset); when absent, the shared club password is accepted.
+- **`Project`** — project submissions with nested ratings/awards (JSON columns).
+- **`RecruitmentApplication`** — recruitment submissions; `email` and `registerNumber` are **unique**, so one person can apply only once.
+- **`AllowedEmail`** — admin-managed signup allowlist (see below).
+- **`Collection`** — key/value store for bulk dashboard data the UI syncs wholesale (announcements, uploads, events, winners, feedback, etc.).
+
+### Authentication & access control
+1. **OTP login** — user enters a `@vitstudent.ac.in` email; the backend **verifies the email already exists** in the `User` table, then emails a 6-digit OTP (valid **5 minutes**). Unknown emails are rejected with *"No account found — please sign up first."*
+2. **Password login** — same existence check; accepts the user's own password if set, otherwise the shared club password.
+3. **Forgot password** — a real OTP-based reset, in three steps: (a) `forgot-password` emails a 6-digit reset OTP (valid **5 minutes**) if the account exists; (b) `verify-reset-otp` checks the code; (c) `reset-password` re-verifies the code and saves the new password. The user is then prompted to log in with it.
+4. **Signup** — gated by the **allowlist + email format**: an account can only be created if the email is on the admin-managed allowlist *and* matches the VIT student format. The chosen password is stored for that user. Otherwise signup is blocked with a clear message.
+5. On success a JWT (**7-day** expiry) is stored in `localStorage` as `hc_session_token`; `App.jsx` restores the session via `/api/auth/me`.
+
+The live password-requirement checklist appears only while **creating an account** or **resetting a password** — never on the normal login screen.
+
+> **Signup Allowlist tab**: Admins manage who may register from the **Signup Allowlist** tab in the admin portal. Accepting a recruitment application automatically adds that applicant's email to the allowlist and registers them as a member.
 
 ### Key API routes
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/auth/send-otp` | Send OTP to email |
+| POST | `/api/auth/send-otp` | Send OTP (requires existing email) |
 | POST | `/api/auth/login-otp` | Verify OTP, receive JWT |
+| POST | `/api/auth/login` | Password login (requires existing email) |
+| POST | `/api/auth/signup` | Create account (allowlist-gated) |
+| POST | `/api/auth/forgot-password` | Email a password-reset OTP |
+| POST | `/api/auth/verify-reset-otp` | Verify the reset OTP |
+| POST | `/api/auth/reset-password` | Set a new password (OTP + new password) |
 | GET | `/api/auth/me` | Validate token, return user |
 | GET | `/api/data` | Fetch all global state |
 | GET | `/api/public/leaderboard` | Public leaderboard (no auth) |
-| PUT | `/api/projects` | Update projects list |
-| PUT | `/api/announcements` | Update announcements |
+| POST | `/api/recruitment/apply` | Submit a recruitment application (one per email/reg no.) |
+| GET / PUT | `/api/recruitment/applications` | List / update applications (admin) |
+| GET / POST / DELETE | `/api/allowlist` | Manage the signup allowlist (admin) |
 
 ---
 
@@ -117,9 +178,13 @@ The core philosophy is: **Just like building blocks in a house, if a component n
 
 ```
 hc-main-website/
-├── server/                    ← Express backend
+├── server/                    ← Express + Prisma backend
 │   ├── server.js              ← API server (port 5000)
-│   ├── database.json          ← JSON flat-file database
+│   ├── prismaClient.js        ← Shared Prisma client
+│   ├── seed.js                ← Seeds Neon from database.json
+│   ├── prisma/schema.prisma   ← PostgreSQL schema
+│   ├── .env.example           ← Env template (copy to .env)
+│   ├── database.json          ← Legacy seed data (source for db:seed)
 │   └── package.json
 ├── src/
 │   ├── LandingPage.jsx        ← Public landing page (rendered on load)
@@ -127,13 +192,14 @@ hc-main-website/
 │   ├── api.js                 ← Fetch wrapper + token helpers
 │   ├── components/
 │   │   ├── LoginShell.jsx
+│   │   ├── PasswordChecklist.jsx  ← Live rules (signup only)
 │   │   ├── LaunchScreen.jsx
 │   │   ├── UserPortal.jsx
 │   │   ├── AdminPortal.jsx
 │   │   ├── user/              ← User portal tab blocks
-│   │   └── admin/             ← Admin portal tab blocks
+│   │   └── admin/             ← Admin portal tab blocks (incl. Allowlist/)
 │   ├── Leaderboard/           ← Leaderboard sub-tab blocks
-│   ├── data/mockData.js       ← Seed/fallback data shapes
+│   ├── data/mockData.js       ← UI defaults / fallback shapes
 │   ├── index.css              ← Design system variables
 │   └── App.css                ← Portal-level styles
 ├── vite.config.js             ← Dev proxy: /api → :5000
@@ -142,14 +208,11 @@ hc-main-website/
 
 ---
 
-## Constants & Mock Database
+## Data: Neon PostgreSQL (source of truth)
 
-`src/data/mockData.js` defines the data shapes and seed constants used as a structural reference. In development, live data is fetched from the backend via `/api/data` and synced back on mutations. If the backend is not running, the app falls back to the mock constants for UI rendering.
+Live data is stored in **Neon PostgreSQL** and accessed through Prisma. The frontend fetches all state from `/api/data` after login and syncs mutations back to the API. `src/data/mockData.js` now only provides UI structural defaults (e.g. the admin `navItems` list) and fallback shapes when the backend is unreachable.
 
-If you need to adjust seed data or test new fields, modify the relevant arrays in `mockData.js`:
-- `users`: Simulates registered members. Includes scores, roles, and badge arrays.
-- `projects`: Simulates project uploads. Includes individual rating arrays and approval statuses.
-- `feedbacks`: Simulates bug reports and suggestions.
+To seed or reset the database, edit `server/database.json` and run `npm run db:seed` from the `server/` directory — it wipes and repopulates the Neon tables (users, projects, recruitment applications, the signup allowlist, and the bulk collections), and always (re)creates the demo `admin@`/`user@` accounts.
 
 ### Scoring Formula
 The leaderboard ranks are calculated dynamically in the UI based on the constants. The active formula is:
