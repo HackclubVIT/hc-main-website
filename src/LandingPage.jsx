@@ -638,7 +638,7 @@ function SectionHead({ kicker, title, children }) {
 
 /* ---------------- main ---------------- */
 
-export default function HackClubLanding({ onLogin }) {
+export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
   const reduced = useReducedMotion();
   const [active, setActive] = useState("home");
   const [leaderboard, setLeaderboard] = useState([]);
@@ -716,7 +716,7 @@ export default function HackClubLanding({ onLogin }) {
           </p>
 
           <div className="hc-cta-row">
-            <a className="hc-btn solid" href="https://recruitment.hackclub.example" target="_blank" rel="noreferrer">
+            <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M5 19l6-6M14 4l6 6-9 9-6-6 9-9z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -850,7 +850,7 @@ export default function HackClubLanding({ onLogin }) {
           </h2>
           <p>Recruitment for 2026 is live. The terminal is waiting.</p>
           <div className="hc-cta-row center">
-            <a className="hc-btn solid" href="https://recruitment.hackclub.example" target="_blank" rel="noreferrer">
+            <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               Apply now
             </a>
             <a className="hc-btn ghost" href="mailto:hello@hackclub.example">

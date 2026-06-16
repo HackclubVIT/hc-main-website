@@ -14,6 +14,7 @@ import ModerationTab from './admin/Moderation/ModerationTab'
 import SystemTab from './admin/System/SystemTab'
 import ProfileTab from './admin/Profile/ProfileTab'
 import DashboardTab from './admin/Dashboard/DashboardTab'
+import RecruitmentTab from './admin/Recruitment/RecruitmentTab'
 
 export default function AdminPortal({ 
   onLogout, 
@@ -32,7 +33,9 @@ export default function AdminPortal({
   globalActivities,
   globalWeeklyWinners,
   setGlobalWeeklyWinners,
-  globalMonthlyWinners
+  globalMonthlyWinners,
+  globalRecruitmentApplications,
+  setGlobalRecruitmentApplications
 }) {
   const [activeSection, setActiveSection] = useState('Dashboard')
 
@@ -60,6 +63,13 @@ export default function AdminPortal({
                   weeklyWinners={globalWeeklyWinners}
                   setWeeklyWinners={setGlobalWeeklyWinners}
                   addAnnouncement={(ann) => setGlobalAnnouncements([ann, ...globalAnnouncements])} 
+               />
+      case 'Recruitment':
+        return <RecruitmentTab 
+                  applications={globalRecruitmentApplications} 
+                  setApplications={setGlobalRecruitmentApplications} 
+                  users={globalUsers} 
+                  setUsers={setGlobalUsers} 
                />
       case 'Analytics':
         return <AnalyticsTab users={globalUsers} projects={globalProjects} />
@@ -93,7 +103,9 @@ export default function AdminPortal({
     setGlobalProjects,
     setGlobalUploads,
     setGlobalUsers,
-    setGlobalWeeklyWinners
+    setGlobalWeeklyWinners,
+    globalRecruitmentApplications,
+    setGlobalRecruitmentApplications
   ])
 
   return (

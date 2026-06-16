@@ -35,10 +35,18 @@ async function apiFetch(endpoint, options = {}) {
     headers,
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      throw new Error('Server returned an invalid response format.');
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || 'API Request failed.');
+    throw new Error(data.error || `API Request failed with status ${response.status}`);
   }
 
   return data;
@@ -90,11 +98,7 @@ export const api = {
 
   // Public Leaderboard (No auth required)
   async getPublicLeaderboard() {
-    const response = await fetch(`${API_BASE}/public/leaderboard`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch public leaderboard.');
-    }
-    return response.json();
+    return apiFetch('/public/leaderboard');
   },
 
   // Projects
@@ -161,6 +165,25 @@ export const api = {
     return apiFetch('/leaderboard/winners', {
       method: 'POST',
       body: JSON.stringify(winnersData),
+    });
+  },
+
+  // Recruitment
+  async submitRecruitmentApplication(applicationData) {
+    return apiFetch('/recruitment/apply', {
+      method: 'POST',
+      body: JSON.stringify(applicationData),
+    });
+  },
+
+  async getRecruitmentApplications() {
+    return apiFetch('/recruitment/applications');
+  },
+
+  async updateRecruitmentApplicationStatus(applicationId, status) {
+    return apiFetch(`/recruitment/applications/${applicationId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
     });
   },
 };

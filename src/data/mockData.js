@@ -6,6 +6,7 @@ export const navItems = [
   'Ratings Management',
   'Leaderboard',
   'Leaderboard Management',
+  'Recruitment',
   'Analytics',
   'Feedback',
   'System',
