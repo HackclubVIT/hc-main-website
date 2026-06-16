@@ -56,20 +56,20 @@ export default function DashboardTab({ adminUploads, globalAnnouncements, users,
               {globalAnnouncements[0]?.body || 'Keep your community informed by posting an update.'}
             </p>
           </div>
-          <div className="panel-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
+          {/* <div className="panel-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(76, 175, 80, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
               <span style={{ fontSize: '24px' }}>🟢</span>
             </div>
             <p className="eyebrow">System Status</p>
             <h3 style={{ margin: '4px 0', fontSize: '1.2rem' }}>All Systems Nominal</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>99.9% Uptime this month</p>
-          </div>
+          </div> */}
         </div>
       </section>
 
       {/* Lower Section: Quick Actions & Recent Activity */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        <section className="panel-section">
+        {/* <section className="panel-section">
           <h3 style={{ marginBottom: '16px', fontSize: '1.2rem', fontWeight: 600 }}>Quick Actions</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="panel-card" style={{ cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)', ':hover': { background: 'rgba(255,255,255,0.1)' } }}>
@@ -93,41 +93,26 @@ export default function DashboardTab({ adminUploads, globalAnnouncements, users,
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Review member access & roles</p>
             </div>
           </div>
-        </section>
+        </section> */}
 
-        <section className="panel-section">
-          <h3 style={{ marginBottom: '16px', fontSize: '1.2rem', fontWeight: 600 }}>Recent Activity</h3>
-          <div className="panel-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)', marginTop: '6px' }}></div>
-              <div>
-                <p style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}><strong>Priya Menon</strong> submitted a new project: "AI Study Buddy"</p>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>2 hours ago</span>
-              </div>
+        {projects && projects.length > 0 && (
+          <section className="panel-section">
+            <h3 style={{ marginBottom: '16px', fontSize: '1.2rem', fontWeight: 600 }}>Recent Activity</h3>
+            <div className="panel-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {projects.slice(-4).reverse().map((project, index) => (
+                <div key={`${project.id || project.title || index}`} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)', marginTop: '6px' }}></div>
+                  <div>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}>
+                      <strong>{project.owner || project.submitter || 'Someone'}</strong> submitted a new project: "{project.title || 'Untitled Project'}"
+                    </p>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{project.submittedAt || project.createdAt || project.date || 'Recently'}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#4caf50', marginTop: '6px' }}></div>
-              <div>
-                <p style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}><strong>System</strong> successfully backed up database</p>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>5 hours ago</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ffaa00', marginTop: '6px' }}></div>
-              <div>
-                <p style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}><strong>Ananya Rao</strong> reached 100 contribution points</p>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Yesterday</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', marginTop: '6px' }}></div>
-              <div>
-                <p style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}><strong>Admin</strong> published Weekly Winners</p>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>2 days ago</span>
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   )

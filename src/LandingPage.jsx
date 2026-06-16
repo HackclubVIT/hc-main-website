@@ -16,10 +16,10 @@ const PAPER = "#f4ede4";
 /* ---------------- data ---------------- */
 
 const STATS = [
-  { value: 500, suffix: "+", label: "Active Members" },
-  { value: 100, suffix: "+", label: "Projects Completed" },
-  { value: 50, suffix: "+", label: "Hackathons" },
-  { value: 200, suffix: "+", label: "Workshops" },
+  { value: 250, suffix: "+", label: "Active Members" },
+  { value: 40, suffix: "+", label: "Projects Completed" },
+  { value: 20, suffix: "+", label: "Hackathons" },
+  { value: 20, suffix: "+", label: "Workshops" },
 ];
 
 const SECTIONS = [
@@ -33,73 +33,101 @@ const SECTIONS = [
 
 const EVENTS = [
   {
-    id: "codestorm",
+    id: "hacknight",
     tag: "HACKATHON",
-    name: "CodeStorm 24H",
-    date: "JUL 12 — 13",
-    desc: "Our flagship overnight build sprint. 40 teams, one arena, zero sleep. Ship something real before sunrise.",
+    name: "HackNight 24-25",
+    date: "March 1-3, 2025",
+    desc: "Our flagship 48h build hackathon.",
+    image: "/images/hacknight.jpg",
     seed: 7,
   },
   {
     id: "webdev",
     tag: "WORKSHOP",
-    name: "Zero → Web",
-    date: "JUL 26",
+    name: "WebVerse",
+    date: "August 8, 2025",
     desc: "A hands-on workshop taking absolute beginners from a blank file to a deployed personal site in one afternoon.",
+    image: "/images/webverse.jpg",
     seed: 3,
   },
   {
-    id: "mlboot",
-    tag: "BOOTCAMP",
-    name: "AI/ML Bootcamp",
-    date: "AUG 02 — 09",
-    desc: "A week-long deep dive into models that actually run — from regression to your first fine-tuned network.",
-    seed: 11,
+    id: "hackwell",
+    tag: "HACKATHON",
+    name: "Hackwell",
+    date: "September 15, 2025",
+    desc: "One Day Hackathon. Sponsored by WellDoc.",
+    image: "/images/hackwell.jpg",
+    seed: 7,
   },
   {
-    id: "techtalks",
-    tag: "GUEST LECTURE",
-    name: "Tech Talks v3",
-    date: "AUG 23",
-    desc: "Engineers from industry walk through real systems they've built — and the failures nobody puts on slides.",
-    seed: 5,
+    id: "epoch",
+    tag: "BUILDATHON",
+    name: "Epochesque",
+    date: "September 22-23, 2025",
+    desc: "2 day high powered buildathon along with speaker session by Sudhakar Rayavaram",
+    image: "/images/epoch.jpg",
+    seed: 7,
   },
   {
-    id: "hardware",
-    tag: "BUILD NIGHT",
-    name: "Solder & Code",
-    date: "SEP 06",
-    desc: "Microcontrollers, sensors and bad ideas. Build a working IoT gadget from a parts bin in one evening.",
-    seed: 9,
+    id: "debug",
+    tag: "EVENT",
+    name: "Debug The Drama",
+    date: "October 31, 2025",
+    desc: "Decode the clues, spark your creativity, and race against time to debug the drama!",
+    image: "/images/debug-the-drama.jpg",
+    seed: 7,
   },
   {
-    id: "demoday",
-    tag: "SHOWCASE",
-    name: "Demo Day",
-    date: "SEP 27",
-    desc: "Members present the semester's projects to the whole campus. Loud, proud, and occasionally on fire.",
-    seed: 13,
+    id: "sketch2stage",
+    tag: "EVENT",
+    name: "Sketch2Stage",
+    date: "October 31, 2025",
+    desc: "A UI/UX design and prototyping competition where participants sketch a concept, design it using digital tools like Figma, and pitch their final creation to the judges.",
+    image: "/images/sketch2stage.jpg",
+    seed: 7,
+  },
+  {
+    id: "codegolf",
+    tag: "EVENT",
+    name: "Code Golf",
+    date: "November 1, 2025",
+    desc: "A competitive solo programming challenge where you must solve problems using the fewest possible characters because the shortest code wins.",
+    image: "/images/code-golf.jpg",
+    seed: 7,
+  },
+  {
+    id: "finedge hackathon",
+    tag: "HACKATHON",
+    name: "VInd FinEdge Hackathon",
+    date: "April 6, 2026",
+    desc: "A multi-stage financial technology hackathon backed by the Ministry of Finance where teams submit ideas, develop prototypes, and present fintech solutions for cash prizes and internship opportunities.",
+    image: "/images/finedge-hackathon.jpg",
+    seed: 7,
+  },
+  {
+    id: "transferlearning",
+    tag: "WORKSHOP",
+    name: "Introduction to Transfer Learning - The Backbone of Modern AI.",
+    date: "June 28, 2026",
+    desc: "A free educational online workshop led by an IIT Ropar PhD scholar introducing Transfer Learning, the foundational technique behind modern artificial intelligence.",
+    // image: "/images/finedge-hackathon.jpg",
+    seed: 7,
   },
 ];
 
 const BOARD = [
-  { name: "Aarav Mehta", role: "President", tag: "BOARD", blurb: "Keeps the chaos pointed in one direction. Systems nerd, espresso-powered.", deg: 0 },
-  { name: "Sana Iyer", role: "Vice President", tag: "BOARD", blurb: "Runs ops and partnerships. If it happened on time, thank her.", deg: 60 },
-  { name: "Rohan Das", role: "Tech Lead", tag: "BOARD", blurb: "Owns the stack. Reviews your PR at 2AM and leaves kind comments.", deg: 120 },
-  { name: "Mira Kulkarni", role: "Design Lead", tag: "BOARD", blurb: "Everything you find beautiful here is her fault.", deg: 180 },
-  { name: "Kabir Shah", role: "Events Lead", tag: "BOARD", blurb: "Turns empty classrooms into hackathon arenas overnight.", deg: 240 },
-  { name: "Anya Rao", role: "Outreach Lead", tag: "BOARD", blurb: "The reason speakers say yes and sponsors call back.", deg: 300 },
+  { name: "Atul Krishnan", role: "Chairperson", tag: "BOARD", blurb: "", deg: 0 },
+  { name: "Harleen", role: "Vice Chairperson", tag: "BOARD", blurb: "\"I don't exist\" - harleen", deg: 90 },
+  { name: "Ojas Singh", role: "Secretary", tag: "BOARD", blurb: "The calm behind the calendar chaos.", deg: 180 },
+  { name: "Ivan George", role: "Co-Secretry", tag: "BOARD", blurb: "", deg: 270 },
 ];
 
 const CORE = [
-  { name: "Dev Patel", role: "Web Core" },
-  { name: "Isha Nair", role: "ML Core" },
-  { name: "Arjun Verma", role: "Systems Core" },
-  { name: "Tanvi Joshi", role: "Content Core" },
-  { name: "Nikhil Reddy", role: "Hardware Core" },
-  { name: "Zara Khan", role: "Media Core" },
-  { name: "Veer Singh", role: "Community Core" },
-  { name: "Lena D'Souza", role: "Design Core" },
+  { name: "Prachi", role: "Projects Lead" },
+  { name: "Manan", role: "R&D Lead" },
+  { name: "Jesta", role: "Technical Lead" },
+  { name: "Kushagra", role: "Design Lead" },
+  { name: "Arya", role: "Operations Lead" },
 ];
 
 const FAQS = [
@@ -117,7 +145,7 @@ const FAQS = [
   },
   {
     q: "How do I become a board or core member?",
-    a: "Show up, build things, help others. Recruitment for core opens every semester through our recruitment website — consistency matters more than your resume.",
+    a: "Show up, build things, help others. Consistency matters more than your resume.",
   },
   {
     q: "Does membership cost anything?",
@@ -484,14 +512,18 @@ function EventCard({ ev, i }) {
   return (
     <article ref={ref} className={`hc-event ${inView ? "in" : ""}`} style={{ transitionDelay: `${(i % 3) * 90}ms` }}>
       <div className="hc-event-img">
-        <EventArt seed={ev.seed} />
+        {ev.image ? (
+          <img className="hc-event-image" src={ev.image} alt={ev.name} />
+        ) : (
+          <EventArt seed={ev.seed} />
+        )}
         <span className="hc-event-tag">{ev.tag}</span>
       </div>
       <div className="hc-event-body">
         <div className="hc-event-date">{ev.date}</div>
         <h3>{ev.name}</h3>
         <p>{ev.desc}</p>
-        <button
+        {/* <button
           className="hc-event-cta"
           onClick={() => {
             const el = document.getElementById("contact");
@@ -499,7 +531,7 @@ function EventCard({ ev, i }) {
           }}
         >
           Notify me <span aria-hidden="true">→</span>
-        </button>
+        </button> */}
       </div>
     </article>
   );
@@ -696,7 +728,7 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           </div>
           <div className="hc-topbar-right">
             <div className="hc-topbar-status">
-              <span className="hc-dot" /> RECRUITMENT '26 — LIVE
+              <span className="hc-dot" /> RECRUITMENT '26 — OFFLINE
             </div>
             <button className="hc-login" type="button" onClick={onLogin}>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
@@ -716,13 +748,13 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           </p>
 
           <div className="hc-cta-row">
-            <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
+            {/* <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M5 19l6-6M14 4l6 6-9 9-6-6 9-9z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Recruitment Website
-            </a>
-            <a className="hc-btn ghost" href="https://discord.gg/hackclub-example" target="_blank" rel="noreferrer">
+            </a> */}
+            <a className="hc-btn ghost" href="https://discord.gg/zvvux9aAq" target="_blank" rel="noreferrer">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M8.5 15.5c2.2 1 4.8 1 7 0M9 11h.01M15 11h.01M7 5c3.3-1.3 6.7-1.3 10 0l2 11c-1.5 1.6-3.3 2.5-5 3l-1-2h-2l-1 2c-1.7-.5-3.5-1.4-5-3L7 5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
               </svg>
@@ -739,28 +771,31 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           ))}
         </div>
 
-        {leaderboard && leaderboard.length > 0 && (
-          <div className="hc-leaderboard-ticker-wrap">
-            <div className="hc-ticker-title">
-              <span className="live-badge">LIVE</span> LEADERBOARD RANKINGS
-            </div>
-            <div className="hc-ticker-container">
-              <div className="hc-ticker-track">
-                {/* Double the list to ensure infinite seamless scrolling */}
-                {[...leaderboard, ...leaderboard].map((member, index) => {
-                  const rank = (index % leaderboard.length) + 1;
-                  return (
-                    <div key={`${member.id}-${index}`} className="hc-ticker-item">
-                      <span className="hc-ticker-rank">#{rank}</span>
-                      <span className="hc-ticker-name">{member.name}</span>
-                      <span className="hc-ticker-score">{member.totalScore} pts</span>
-                    </div>
-                  );
-                })}
+        {leaderboard && leaderboard.some((member) => (member.totalScore || 0) > 0) && (() => {
+          const visibleLeaderboard = leaderboard.filter((member) => (member.totalScore || 0) > 0);
+          return (
+            <div className="hc-leaderboard-ticker-wrap">
+              <div className="hc-ticker-title">
+                <span className="live-badge">LIVE</span> LEADERBOARD RANKINGS
+              </div>
+              <div className="hc-ticker-container">
+                <div className="hc-ticker-track">
+                  {/* Double the list to ensure infinite seamless scrolling */}
+                  {[...visibleLeaderboard, ...visibleLeaderboard].map((member, index) => {
+                    const rank = (index % visibleLeaderboard.length) + 1;
+                    return (
+                      <div key={`${member.id}-${index}`} className="hc-ticker-item">
+                        <span className="hc-ticker-rank">#{rank}</span>
+                        <span className="hc-ticker-name">{member.name}</span>
+                        <span className="hc-ticker-score">{member.totalScore} pts</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <button className="hc-scrollcue" onClick={() => jump("about")} aria-label="Scroll to About">
           <svg viewBox="0 0 24 40" width="20" height="34">
@@ -848,11 +883,11 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           <h2>
             Ready to build<span className="o">?</span>
           </h2>
-          <p>Recruitment for 2026 is live. The terminal is waiting.</p>
+          <p>Recruitment for 2026 is Offline. Wait Eagerly</p>
           <div className="hc-cta-row center">
-            <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
+            {/* <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               Apply now
-            </a>
+            </a> */}
             {/* <a className="hc-btn ghost" href="mailto:hello@hackclub.example">
               hello@hackclub.example
             </a> */}
@@ -1156,7 +1191,8 @@ html { scroll-behavior: smooth; }
 .hc-event.in { opacity: 1; transform: none; }
 .hc-event:hover { border-color: rgba(172,18,12,0.55); box-shadow: 0 18px 50px rgba(172,18,12,0.12); }
 .hc-event-img { position: relative; }
-.hc-event-art { display: block; width: 100%; height: 150px; }
+.hc-event-art,
+.hc-event-image { display: block; width: 100%; height: 150px; object-fit: cover; }
 .hc-event-tag {
   position: absolute; top: 12px; right: 12px;
   font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .18em;
