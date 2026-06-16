@@ -48,7 +48,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
   const validateEmail = (email) => {
     if (email === 'khandelwalprachi42@gmail.com') return true;
     if (email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in') return true;
-    const regex = /^[a-zA-Z-]+\.[a-zA-Z-]+[0-9]{4}@vitstudent\.ac\.in$/;
+    const regex = /^[a-zA-Z-]+\.([a-zA-Z-]+)?[0-9]{4}@vitstudent\.ac\.in$/;
     return regex.test(email);
   };
 
@@ -81,7 +81,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
       return;
     }
     if (!validateEmail(email)) {
-      setError('Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in');
+      setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
       return;
     }
 
@@ -110,7 +110,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
 
     const trimmedEmail = signUpData.email.trim();
     if (!validateEmail(trimmedEmail)) {
-      setError('Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in');
+      setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
       return;
     }
 
@@ -217,7 +217,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   type="email"
                   value={signUpData.email}
                   onChange={(event) => setSignUpData((prev) => ({ ...prev, email: event.target.value }))}
-                  placeholder="name.lastname2024@vitstudent.ac.in"
+                  placeholder="name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in"
                   style={{ marginBottom: '12px' }}
                 />
               </label>
@@ -303,7 +303,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
               }
 
               if (!validateEmail(email)) {
-                setError('Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in');
+                setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
                 return;
               }
 

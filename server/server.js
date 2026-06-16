@@ -71,8 +71,8 @@ function validatePassword(p) {
 function validateEmail(email) {
   if (email === 'khandelwalprachi42@gmail.com') return true;
   if (email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in') return true;
-  // Matches name.lastnameYYYY@vitstudent.ac.in where YYYY is a 4-digit number
-  const regex = /^[a-zA-Z-]+\.[a-zA-Z-]+[0-9]{4}@vitstudent\.ac\.in$/;
+  // Matches name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in where year is 4 digits
+  const regex = /^[a-zA-Z-]+\.([a-zA-Z-]+)?[0-9]{4}@vitstudent\.ac\.in$/;
   return regex.test(email);
 }
 
@@ -181,7 +181,7 @@ app.post('/api/auth/login-otp', async (req, res) => {
   } else {
     // Dynamic user login fallback
     let emailPrefix = email.split('@')[0];
-    let nameParts = emailPrefix.replace(/[0-9]/g, '').split('.');
+    let nameParts = emailPrefix.replace(/[0-9]/g, '').split('.').filter(Boolean);
     name = nameParts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
   }
   
@@ -227,7 +227,7 @@ app.post('/api/auth/login', async (req, res) => {
   } else {
     // Dynamic user login fallback
     let emailPrefix = email.split('@')[0];
-    let nameParts = emailPrefix.replace(/[0-9]/g, '').split('.');
+    let nameParts = emailPrefix.replace(/[0-9]/g, '').split('.').filter(Boolean);
     name = nameParts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
   }
 
