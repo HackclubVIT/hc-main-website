@@ -1,0 +1,445 @@
+{
+  "announcements": [
+    {
+      "title": "🏆 Weekly Winners Announced!",
+      "body": "Congratulations to Srinath for being the Top Contributor, and \"VIT Hack Tracker\" for being the Top Project of the week!",
+      "label": "Winner"
+    },
+    {
+      "id": 1,
+      "title": "HackClub Meet",
+      "body": "Weekly meetup scheduled for Friday at 5 PM.",
+      "label": "Live"
+    },
+    {
+      "id": 2,
+      "title": "Project Deadline",
+      "body": "Final project submissions close on Jun 20.",
+      "label": "Urgent"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Ananya Rao",
+      "role": "Moderator",
+      "status": "Active",
+      "isReviewer": true,
+      "projectsUploaded": 5,
+      "averageRating": "4.8",
+      "badges": [
+        "Top Performer",
+        "Active Contributor"
+      ],
+      "recentProjects": [
+        "Campus AI Mentor",
+        "HackClub Website"
+      ],
+      "projectRatingScore": 95,
+      "contributionScore": 85,
+      "eventScore": 90,
+      "totalScore": 93
+    },
+    {
+      "id": 2,
+      "name": "Rishi Kumar",
+      "role": "Project Lead",
+      "status": "Pending",
+      "isReviewer": false,
+      "projectsUploaded": 2,
+      "averageRating": "4.5",
+      "badges": [
+        "Problem Solver"
+      ],
+      "recentProjects": [
+        "VIT Hack Tracker"
+      ],
+      "projectRatingScore": 85,
+      "contributionScore": 60,
+      "eventScore": 70,
+      "totalScore": 79
+    },
+    {
+      "id": 3,
+      "name": "Priya Menon",
+      "role": "Content Admin",
+      "status": "Active",
+      "isReviewer": true,
+      "projectsUploaded": 4,
+      "averageRating": "4.3",
+      "badges": [
+        "Team Player",
+        "Consistent Learner"
+      ],
+      "recentProjects": [
+        "Green Code Initiative"
+      ],
+      "projectRatingScore": 80,
+      "contributionScore": 90,
+      "eventScore": 80,
+      "totalScore": 82
+    },
+    {
+      "id": 4,
+      "name": "Sahil Nair",
+      "role": "Member",
+      "status": "Inactive",
+      "isReviewer": false,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 3
+    },
+    {
+      "id": 5,
+      "name": "Srinath",
+      "role": "Member",
+      "status": "Active",
+      "isReviewer": false,
+      "projectsUploaded": 3,
+      "averageRating": "4.9",
+      "badges": [
+        "Innovator",
+        "Full Stack Developer"
+      ],
+      "recentProjects": [
+        "Leaderboard UI",
+        "Sorting Algorithm Visualizer"
+      ],
+      "projectRatingScore": 98,
+      "contributionScore": 88,
+      "eventScore": 85,
+      "totalScore": 95
+    },
+    {
+      "id": 1781324480775,
+      "name": "Prachi Khandelwal",
+      "email": "prachi.khandelwal2024@vitstudent.ac.in",
+      "role": "Member",
+      "status": "Active",
+      "isReviewer": false,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "New Maker"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7
+    },
+    {
+      "id": 1781502524190,
+      "name": "Ojas Singh",
+      "email": "ojas.singh2024@vitstudent.ac.in",
+      "role": "Member",
+      "status": "Active",
+      "isReviewer": false,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "New Maker"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7
+    },
+    {
+      "id": 1781502792923,
+      "name": "Admin",
+      "email": "admin@vitstudent.ac.in",
+      "role": "Admin",
+      "status": "Active",
+      "isReviewer": true,
+      "projectsUploaded": 0,
+      "averageRating": "0.0",
+      "badges": [
+        "Lead Organizer"
+      ],
+      "recentProjects": [],
+      "projectRatingScore": 0,
+      "contributionScore": 10,
+      "eventScore": 5,
+      "totalScore": 7
+    }
+  ],
+  "projects": [
+    {
+      "id": 101,
+      "title": "Campus AI Mentor",
+      "owner": "Ananya Rao",
+      "status": "Review",
+      "rating": "4.7",
+      "contributors": "Nikhil, Aarav",
+      "technologiesUsed": [
+        "React",
+        "Python",
+        "FastAPI"
+      ],
+      "submissionDate": "2026-06-05",
+      "awards": [
+        "Best Innovation"
+      ],
+      "individualRatings": [
+        {
+          "user": "Srinath",
+          "rating": 5,
+          "comment": "Great project, very useful for students."
+        },
+        {
+          "user": "FakeBot123",
+          "rating": 1,
+          "comment": "Bad"
+        },
+        {
+          "user": "Priya Menon",
+          "rating": 4.5,
+          "comment": "Good UI and smooth transitions."
+        },
+        {
+          "user": "CryptoSpammer",
+          "rating": 5,
+          "comment": "buy crypto at totallylegit.com!!"
+        },
+        {
+          "user": "Rahul",
+          "rating": 4,
+          "comment": "Nice, but could use a few more features."
+        },
+        {
+          "user": "Aditi",
+          "rating": 5,
+          "comment": "Loved the AI integration! Super helpful."
+        },
+        {
+          "user": "Hater123",
+          "rating": 1,
+          "comment": "i hate ai"
+        },
+        {
+          "user": "Nikhil",
+          "rating": 4.8,
+          "comment": "Code is very clean and modular."
+        },
+        {
+          "user": "Sana",
+          "rating": 4.2,
+          "comment": "Works well for me on mobile."
+        },
+        {
+          "user": "BotNet_00",
+          "rating": 1,
+          "comment": "terrible terrible terrible"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "title": "VIT Hack Tracker",
+      "owner": "Rishi Kumar",
+      "status": "Published",
+      "rating": "4.9",
+      "contributors": "Sana, Diya",
+      "technologiesUsed": [
+        "Next.js",
+        "Tailwind",
+        "MongoDB"
+      ],
+      "submissionDate": "2026-06-01",
+      "awards": [
+        "Top Project of the Week"
+      ],
+      "individualRatings": [
+        {
+          "user": "Ananya Rao",
+          "rating": 5,
+          "comment": "Very useful!"
+        },
+        {
+          "user": "Sahil Nair",
+          "rating": 4.8,
+          "comment": "Nice work"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "title": "Green Code Initiative",
+      "owner": "Priya Menon",
+      "status": "Draft",
+      "rating": "4.3",
+      "contributors": "Pooja, Rahul",
+      "technologiesUsed": [
+        "Vue.js",
+        "Node.js"
+      ],
+      "submissionDate": "2026-06-10",
+      "awards": [],
+      "individualRatings": []
+    }
+  ],
+  "uploads": [
+    {
+      "id": 1,
+      "content": "HackClub event poster",
+      "author": "Aditi Sharma",
+      "date": "Jun 09",
+      "status": "New"
+    },
+    {
+      "id": 2,
+      "content": "Team demo video",
+      "author": "Hrithik Jain",
+      "date": "Jun 08",
+      "status": "Pending"
+    },
+    {
+      "id": 3,
+      "content": "Project report",
+      "author": "Meera Pillai",
+      "date": "Jun 07",
+      "status": "New"
+    }
+  ],
+  "recentActivities": [
+    {
+      "id": 1,
+      "label": "Submitted project proposal",
+      "detail": "CodeStorm 24H preparation",
+      "time": "2h ago"
+    },
+    {
+      "id": 2,
+      "label": "Reviewed upload",
+      "detail": "Design resources from Aditi",
+      "time": "5h ago"
+    },
+    {
+      "id": 3,
+      "label": "Commented on team planning",
+      "detail": "UI flow for new dashboard",
+      "time": "1d ago"
+    }
+  ],
+  "eventsList": [
+    {
+      "id": 1,
+      "title": "CodeStorm kickoff",
+      "date": "Jul 12",
+      "status": "Confirmed"
+    },
+    {
+      "id": 2,
+      "title": "Portfolio review",
+      "date": "Jul 18",
+      "status": "Planning"
+    },
+    {
+      "id": 3,
+      "title": "Mentor roundtable",
+      "date": "Jul 22",
+      "status": "Open"
+    }
+  ],
+  "teamUpdates": [
+    {
+      "id": 1,
+      "title": "Mentorship squad formed",
+      "detail": "New pod for freshers onboarding"
+    },
+    {
+      "id": 2,
+      "title": "Site refresh completed",
+      "detail": "Event landing page now live"
+    }
+  ],
+  "feedbacks": [
+    {
+      "id": 1,
+      "user": "Lakshmi",
+      "message": "Need a faster upload flow for large files.",
+      "type": "Suggestion"
+    },
+    {
+      "id": 2,
+      "user": "Karan",
+      "message": "Project approval notifications are very helpful.",
+      "type": "Praise"
+    },
+    {
+      "id": 3,
+      "user": "Megha",
+      "message": "Analytics should include weekly trends.",
+      "type": "Request"
+    }
+  ],
+  "systemStatus": [
+    {
+      "label": "Database",
+      "value": "Online"
+    },
+    {
+      "label": "API",
+      "value": "Stable"
+    },
+    {
+      "label": "Storage",
+      "value": "92% Capacity"
+    }
+  ],
+  "weeklyWinners": {
+    "topContributor": "Ananya Rao",
+    "topProject": "VIT Hack Tracker",
+    "mostActive": "Priya Menon",
+    "bestInnovation": "Campus AI Mentor"
+  },
+  "monthlyWinners": {
+    "hallOfFame": [
+      "Nikhil Singh",
+      "Ananya Rao",
+      "Srinath"
+    ],
+    "topProject": "AI Interview Bot"
+  },
+  "profile": {
+    "name": "Priya Sharma",
+    "role": "Frontend Lead",
+    "registerNumber": "21BCE10234",
+    "email": "priya@vitstudent.ac.in",
+    "phoneNumber": "+91 9876543210",
+    "location": "Chennai",
+    "joined": "Aug 2023",
+    "github": "github.com/priyasharma",
+    "portfolio": "priyasharma.dev",
+    "badges": [
+      "Top Performer",
+      "Active Contributor"
+    ],
+    "isReviewer": true
+  },
+  "contributions": [
+    {
+      "label": "Projects contributed",
+      "value": "18"
+    },
+    {
+      "label": "Ideas shared",
+      "value": "27"
+    },
+    {
+      "label": "Mentorship hours",
+      "value": "94"
+    },
+    {
+      "label": "Events hosted",
+      "value": "6"
+    }
+  ]
+}

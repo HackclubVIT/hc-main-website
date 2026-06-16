@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { api } from "./api";
 
 /* ============================================================
    HACKCLUB — LANDING PAGE
@@ -640,6 +641,17 @@ function SectionHead({ kicker, title, children }) {
 export default function HackClubLanding({ onLogin }) {
   const reduced = useReducedMotion();
   const [active, setActive] = useState("home");
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  useEffect(() => {
+    api.getPublicLeaderboard()
+      .then(data => {
+        setLeaderboard(data);
+      })
+      .catch(err => {
+        console.error("Failed to load public leaderboard for ticker:", err);
+      });
+  }, []);
 
   const jump = useCallback((id) => {
     const el = document.getElementById(id);
@@ -726,6 +738,29 @@ export default function HackClubLanding({ onLogin }) {
             <StatCard key={s.label} {...s} delay={i * 100} />
           ))}
         </div>
+
+        {leaderboard && leaderboard.length > 0 && (
+          <div className="hc-leaderboard-ticker-wrap">
+            <div className="hc-ticker-title">
+              <span className="live-badge">LIVE</span> LEADERBOARD RANKINGS
+            </div>
+            <div className="hc-ticker-container">
+              <div className="hc-ticker-track">
+                {/* Double the list to ensure infinite seamless scrolling */}
+                {[...leaderboard, ...leaderboard].map((member, index) => {
+                  const rank = (index % leaderboard.length) + 1;
+                  return (
+                    <div key={`${member.id}-${index}`} className="hc-ticker-item">
+                      <span className="hc-ticker-rank">#{rank}</span>
+                      <span className="hc-ticker-name">{member.name}</span>
+                      <span className="hc-ticker-score">{member.totalScore} pts</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         <button className="hc-scrollcue" onClick={() => jump("about")} aria-label="Scroll to About">
           <svg viewBox="0 0 24 40" width="20" height="34">
@@ -1327,9 +1362,120 @@ html { scroll-behavior: smooth; }
   .hc-footer-meta { justify-content: center; }
 }
 
+/* ---------- leaderboard ticker ---------- */
+.hc-leaderboard-ticker-wrap {
+  margin-top: 40px;
+  width: 100%;
+  max-width: 1180px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1;
+  position: relative;
+}
+.hc-ticker-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .2em;
+  color: var(--mute);
+  text-transform: uppercase;
+}
+.hc-ticker-title .live-badge {
+  background: var(--orange);
+  color: #000;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  animation: hc-pulse-opacity 1.5s infinite alternate;
+}
+@keyframes hc-pulse-opacity {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+.hc-ticker-container {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  padding: 14px 0;
+  background: rgba(18,2,2,0.4);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.hc-ticker-container::before,
+.hc-ticker-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+.hc-ticker-container::before {
+  left: 0;
+  background: linear-gradient(to right, var(--ink) 0%, transparent 100%);
+}
+.hc-ticker-container::after {
+  right: 0;
+  background: linear-gradient(to left, var(--ink) 0%, transparent 100%);
+}
+.hc-ticker-track {
+  display: inline-flex;
+  gap: 32px;
+  animation: hc-marquee 25s linear infinite;
+  width: max-content;
+}
+.hc-ticker-track:hover {
+  animation-play-state: paused;
+}
+@keyframes hc-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.hc-ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.hc-ticker-item:hover {
+  border-color: var(--orange);
+  background: rgba(172,18,12,0.05);
+  transform: translateY(-2px);
+}
+.hc-ticker-rank {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 12px;
+}
+.hc-ticker-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+.hc-ticker-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--amber);
+  background: rgba(208,125,34,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hc-orbit-spin, .hc-orbit-rings, .hc-astro, .hc-pulse, .hc-core-pulse,
-  .hc-wordmark::before, .hc-wordmark::after, .hc-panel-bars i, .hc-wheel {
+  .hc-wordmark::before, .hc-wordmark::after, .hc-panel-bars i, .hc-wheel, .hc-ticker-track, .hc-ticker-title .live-badge {
     animation: none !important;
   }
   html { scroll-behavior: auto; }

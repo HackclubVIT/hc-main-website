@@ -64,7 +64,14 @@ input {
   font: inherit;
 }
 
-h1, h2, h3, h4, button, label, p, span {
+h1,
+h2,
+h3,
+h4,
+button,
+label,
+p,
+span {
   margin: 0;
 }
 
@@ -75,6 +82,25 @@ a {
 
 a:hover {
   color: var(--link-hover);
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+button {
+  border: 1px solid transparent;
+}
+
+label {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+::selection {
+  background: rgba(172, 18, 12, 0.35);
 }
 
 button {
