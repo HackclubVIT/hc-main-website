@@ -299,10 +299,15 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Signup — gated by the admin-managed allowlist + email format.
 app.post('/api/auth/signup', async (req, res) => {
-  const { email, password, name } = req.body;
-  if (!email || !password || !name) return res.status(400).json({ error: 'Please fill in all fields.' });
+  const { email, password, name, registerNumber } = req.body;
+  if (!email || !password || !name || !registerNumber) return res.status(400).json({ error: 'Please fill in all fields.' });
   if (!validateEmail(email)) {
     return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
+  }
+
+  const regNo = String(registerNumber).trim().toUpperCase();
+  if (!/^[0-9]{2}[A-Z]{3}[0-9]{4}$/.test(regNo)) {
+    return res.status(400).json({ error: 'Enter a valid VIT register number (e.g., 24BCE1234).' });
   }
 
   const allowed = await isEmailAllowed(email);
@@ -322,6 +327,7 @@ app.post('/api/auth/signup', async (req, res) => {
       name,
       email,
       password,
+      registerNumber: regNo,
       role: 'Member',
       status: 'Active',
       badges: ['New Maker'],

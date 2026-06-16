@@ -64,10 +64,10 @@ export const api = {
     return data;
   },
 
-  async signup(name, email, password) {
+  async signup(name, email, password, registerNumber) {
     return apiFetch('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, registerNumber }),
     });
   },
 

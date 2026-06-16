@@ -27,7 +27,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
   
   // Signup States
   const [isSignUp, setIsSignUp] = useState(false)
-  const [signUpData, setSignUpData] = useState({ name: '', email: '', password: '', confirmPassword: '' })
+  const [signUpData, setSignUpData] = useState({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '' })
 
   // OTP Login States
   const [authMethod, setAuthMethod] = useState('otp') // 'otp' or 'password'
@@ -118,7 +118,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
     setError('');
     setSuccessMessage('');
 
-    if (!signUpData.name || !signUpData.email || !signUpData.password || !signUpData.confirmPassword) {
+    if (!signUpData.name || !signUpData.registerNumber || !signUpData.email || !signUpData.password || !signUpData.confirmPassword) {
       setError('Please fill in all fields.');
       return;
     }
@@ -126,6 +126,12 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
     const trimmedEmail = signUpData.email.trim();
     if (!validateEmail(trimmedEmail)) {
       setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
+      return;
+    }
+
+    const trimmedReg = signUpData.registerNumber.trim().toUpperCase();
+    if (!/^[0-9]{2}[a-zA-Z]{3}[0-9]{4}$/.test(trimmedReg)) {
+      setError('Enter a valid VIT register number (e.g., 24BCE1234).');
       return;
     }
 
@@ -142,11 +148,11 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
 
     setLoading(true);
     try {
-      const res = await api.signup(signUpData.name, trimmedEmail, signUpData.password);
+      const res = await api.signup(signUpData.name, trimmedEmail, signUpData.password, trimmedReg);
       setSuccessMessage(res.message || 'Registration successful! You can now log in.');
       setIsSignUp(false);
       setCredentials(prev => ({ ...prev, email: trimmedEmail }));
-      setSignUpData({ name: '', email: '', password: '', confirmPassword: '' });
+      setSignUpData({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '' });
     } catch (err) {
       setError(err.message || 'Failed to sign up. Account may already exist.');
     } finally {
@@ -360,6 +366,17 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   onChange={(event) => setSignUpData((prev) => ({ ...prev, name: event.target.value }))}
                   placeholder="Enter name or username"
                   style={{ marginBottom: '12px' }}
+                />
+              </label>
+
+              <label>
+                Registration Number
+                <input
+                  type="text"
+                  value={signUpData.registerNumber}
+                  onChange={(event) => setSignUpData((prev) => ({ ...prev, registerNumber: event.target.value }))}
+                  placeholder="e.g., 24BCE1234"
+                  style={{ marginBottom: '12px', textTransform: 'uppercase' }}
                 />
               </label>
 
