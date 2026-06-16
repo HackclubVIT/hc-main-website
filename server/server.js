@@ -3,7 +3,13 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import prisma from './prismaClient.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const activeOTPs = new Map(); // email -> { otp, expires }  (login)
 const passwordResetOTPs = new Map(); // email -> { otp, expires }  (password reset)
@@ -835,6 +841,22 @@ app.delete('/api/allowlist/:id', authenticateToken, requireAdmin, async (req, re
   const allowedEmails = await prisma.allowedEmail.findMany({ orderBy: { createdAt: 'asc' } });
   res.json({ allowedEmails });
 });
+
+/* ================================================================== */
+/* STATIC FRONTEND (production)                                        */
+/* ================================================================== */
+
+// In production the same Express process serves the built Vite SPA. The
+// frontend calls the API via the relative path `/api`, so this is same-origin.
+const distPath = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  // SPA fallback: any non-API route returns index.html so client routing works.
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) return res.status(404).json({ error: 'Not found.' });
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 /* ------------------------------------------------------------------ */
 

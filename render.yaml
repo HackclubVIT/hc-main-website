@@ -1,0 +1,30 @@
+# Render Blueprint — single Web Service that builds the Vite SPA and runs the
+# Express API, serving both from one origin. Deploy via render.com → New ▸ Blueprint.
+services:
+  - type: web
+    name: hackclub-vit-portal
+    runtime: node
+    plan: free
+    branch: main
+    # Render sets NODE_ENV=production (which skips devDependencies); the flags
+    # below force vite (root) and the prisma CLI (server) to install so the
+    # build and client generation can run.
+    buildCommand: npm install --include=dev && npm run build && cd server && npm install --include=dev && npx prisma generate
+    startCommand: cd server && node server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
+      - key: NODE_ENV
+        value: production
+      # ---- Secrets: set these in the Render dashboard (sync: false) ----
+      - key: DATABASE_URL   # Neon pooled connection string (?sslmode=require)
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SMTP_USER      # Gmail address
+        sync: false
+      - key: SMTP_PASS      # Gmail App Password
+        sync: false
