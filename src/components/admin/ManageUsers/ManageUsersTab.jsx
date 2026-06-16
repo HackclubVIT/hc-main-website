@@ -107,7 +107,7 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div className="two-col-grid" style={{ gap: '24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div className="panel-card" style={{ padding: '32px', position: 'relative' }}>
               <button
@@ -172,7 +172,7 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
 
                 <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '8px 0' }}></div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="two-col-grid">
                   <label>
                     Register Number
                     <input type="text" value={isEditingProfile ? editForm.regNo : userRegNo} onChange={e => setEditForm({...editForm, regNo: e.target.value})} readOnly={!isEditingProfile} style={{ marginTop: '8px', width: '100%', opacity: isEditingProfile ? 1 : 0.7, cursor: isEditingProfile ? 'text' : 'not-allowed' }} />
@@ -190,7 +190,7 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
                     <input type="url" value={isEditingProfile ? editForm.portfolio : userPortfolio} onChange={e => setEditForm({...editForm, portfolio: e.target.value})} readOnly={!isEditingProfile} style={{ marginTop: '8px', width: '100%', opacity: isEditingProfile ? 1 : 0.7, cursor: isEditingProfile ? 'text' : 'not-allowed' }} />
                   </label>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="two-col-grid">
                   <label>
                     LinkedIn URL
                     <input type="url" value={isEditingProfile ? editForm.linkedin : userLinkedin} onChange={e => setEditForm({...editForm, linkedin: e.target.value})} readOnly={!isEditingProfile} style={{ marginTop: '8px', width: '100%', opacity: isEditingProfile ? 1 : 0.7, cursor: isEditingProfile ? 'text' : 'not-allowed' }} />

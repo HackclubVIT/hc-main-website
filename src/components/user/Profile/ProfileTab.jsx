@@ -87,7 +87,7 @@ export default function ProfileTab({ dashboardProfile, setDashboardProfile, dash
               style={{ marginTop: '8px', opacity: 0.7, cursor: 'not-allowed' }} 
             />
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="two-col-grid">
             <label>
               Register Number
               <input 
@@ -141,7 +141,7 @@ export default function ProfileTab({ dashboardProfile, setDashboardProfile, dash
               />
             </label>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="two-col-grid">
             <label>
               LinkedIn URL
               <input 

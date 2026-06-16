@@ -68,7 +68,7 @@ export default function DashboardTab({ adminUploads, globalAnnouncements, users,
       </section>
 
       {/* Lower Section: Quick Actions & Recent Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div className="two-col-grid" style={{ gap: '24px' }}>
         {/* <section className="panel-section">
           <h3 style={{ marginBottom: '16px', fontSize: '1.2rem', fontWeight: 600 }}>Quick Actions</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

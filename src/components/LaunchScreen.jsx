@@ -38,7 +38,7 @@ export default function LaunchScreen({ onComplete }) {
             <span className="launch-dot">.</span>
           </div>
         ) : (
-          <div className="launch-typing-word" style={{ fontSize: 'clamp(6rem, 10vw, 10rem)', fontWeight: '900', letterSpacing: '-0.05em', color: 'transparent', background: 'linear-gradient(135deg, #ff5a4f, #d3070e, #f25b24)', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}>
+          <div className="launch-typing-word">
             {splashText}
           </div>
         )}

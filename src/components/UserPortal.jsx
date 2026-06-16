@@ -44,6 +44,7 @@ export default function UserPortal({
   const isLead = isLeadRole(role)
   const myDepartment = isLead ? departmentFromRole(role) : (globalProfile.department || null)
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false)
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [showContactForm, setShowContactForm] = useState(false)
   const [contactData, setContactData] = useState({ email: '', subject: '', message: '' })
 
@@ -69,7 +70,9 @@ export default function UserPortal({
       case 'activity':
         return <ActivityTab dashboardActivities={globalActivities} setDashboardActivities={setGlobalActivities} />
       case 'analytics':
-        return <AnalyticsTab dashboardAnalytics={globalAnalytics} setDashboardAnalytics={() => {}} />
+        return isLead
+          ? <AnalyticsTab dashboardAnalytics={globalAnalytics} setDashboardAnalytics={() => {}} />
+          : <OverviewTab dashboardContributions={globalContributions} setDashboardContributions={setGlobalContributions} dashboardProjects={globalProjects} setDashboardProjects={setGlobalProjects} dashboardActivities={globalActivities} setDashboardActivities={setGlobalActivities} />
       case 'leaderboard':
         return <Leaderboard users={globalUsers} projects={globalProjects} weeklyWinners={globalWeeklyWinners} monthlyWinners={globalMonthlyWinners} />
       case 'team':
@@ -88,11 +91,12 @@ export default function UserPortal({
 
   return (
     <div className="user-shell">
-      <aside className={`user-sidebar ${isSidebarMinimized ? 'minimized' : ''}`}>
+      <div className={`sidebar-backdrop ${isMobileNavOpen ? 'visible' : ''}`} onClick={() => setIsMobileNavOpen(false)} />
+      <aside className={`user-sidebar ${isSidebarMinimized ? 'minimized' : ''} ${isMobileNavOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-brand" style={isSidebarMinimized ? { display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' } : { display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div 
-              className="brand-mark sidebar-mark" 
+            <div
+              className="brand-mark sidebar-mark"
               style={isSidebarMinimized ? { width: 40, height: 40, fontSize: '1.2rem', margin: '0' } : {}}
               title={isSidebarMinimized ? "HackClub VIT Chennai" : ""}
             >
@@ -108,8 +112,9 @@ export default function UserPortal({
           <button className="toggle-sidebar-btn" onClick={() => setIsSidebarMinimized(!isSidebarMinimized)}>
             {isSidebarMinimized ? '▶' : '◀'}
           </button>
+          <button className="mobile-close-btn" onClick={() => setIsMobileNavOpen(false)} aria-label="Close menu">✕</button>
         </div>
-        <nav className="user-sidebar-nav">
+        <nav className="user-sidebar-nav" onClick={() => setIsMobileNavOpen(false)}>
           <div className="nav-section">
             <button
               className={`nav-link ${userSection === 'overview' ? 'active' : ''}`}
@@ -155,14 +160,16 @@ export default function UserPortal({
               <span>⚡</span>
               <span>Activity</span>
             </button>
-            <button
-              className={`nav-link ${userSection === 'analytics' ? 'active' : ''}`}
-              onClick={() => setUserSection('analytics')}
-              title="Analytics"
-            >
-              <span>📈</span>
-              <span>Analytics</span>
-            </button>
+            {isLead && (
+              <button
+                className={`nav-link ${userSection === 'analytics' ? 'active' : ''}`}
+                onClick={() => setUserSection('analytics')}
+                title="Analytics"
+              >
+                <span>📈</span>
+                <span>Analytics</span>
+              </button>
+            )}
           </div>
           <div className="nav-section">
             <button
@@ -236,6 +243,7 @@ export default function UserPortal({
       <div className="user-layout">
         <header className="admin-header">
           <div className="header-identity">
+            <button className="mobile-menu-btn" onClick={() => setIsMobileNavOpen(true)} aria-label="Open menu">☰</button>
             <div>
               <p className="eyebrow">{isLead ? 'Lead Dashboard' : 'User Dashboard'}</p>
               <h1>Welcome back, {globalProfile.name}</h1>

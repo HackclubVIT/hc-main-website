@@ -52,6 +52,7 @@ export default function AdminPortal({
 
   // UI state
   const [isAdminSidebarMinimized, setIsAdminSidebarMinimized] = useState(false)
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [showAdminProfileDropdown, setShowAdminProfileDropdown] = useState(false)
   const [showBugReport, setShowBugReport] = useState(false)
   const [bugReport, setBugReport] = useState({ title: '', description: '' })
@@ -127,11 +128,12 @@ export default function AdminPortal({
 
   return (
     <div className="admin-shell">
-      <aside className={`admin-sidebar ${isAdminSidebarMinimized ? 'minimized' : ''}`}>
+      <div className={`sidebar-backdrop ${isMobileNavOpen ? 'visible' : ''}`} onClick={() => setIsMobileNavOpen(false)} />
+      <aside className={`admin-sidebar ${isAdminSidebarMinimized ? 'minimized' : ''} ${isMobileNavOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-brand" style={isAdminSidebarMinimized ? { display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' } : { display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div 
-              className="brand-mark sidebar-mark" 
+            <div
+              className="brand-mark sidebar-mark"
               style={isAdminSidebarMinimized ? { width: 40, height: 40, fontSize: '1.2rem', margin: '0' } : {}}
               title={isAdminSidebarMinimized ? "HackClub VIT Chennai" : ""}
             >
@@ -147,8 +149,9 @@ export default function AdminPortal({
           <button className="toggle-sidebar-btn" onClick={() => setIsAdminSidebarMinimized(!isAdminSidebarMinimized)}>
             {isAdminSidebarMinimized ? '▶' : '◀'}
           </button>
+          <button className="mobile-close-btn" onClick={() => setIsMobileNavOpen(false)} aria-label="Close menu">✕</button>
         </div>
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" onClick={() => setIsMobileNavOpen(false)}>
           {navItems.map((item) => (
             <button
               key={item}
@@ -198,6 +201,7 @@ export default function AdminPortal({
       <div className="admin-layout">
         <header className="admin-header">
           <div className="header-identity">
+            <button className="mobile-menu-btn" onClick={() => setIsMobileNavOpen(true)} aria-label="Open menu">☰</button>
             <div>
               <p className="eyebrow">{myRole} Portal {activeSection !== 'Dashboard' ? `• ${activeSection}` : ''}</p>
               <h1>Welcome back, {myName}</h1>

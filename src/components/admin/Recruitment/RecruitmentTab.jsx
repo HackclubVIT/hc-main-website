@@ -186,7 +186,7 @@ export default function RecruitmentTab({
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+            <div className="two-col-grid" style={{ gap: '24px', marginBottom: '24px' }}>
               <div style={{ display: 'grid', gap: '12px' }}>
                 <div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</span>

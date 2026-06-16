@@ -122,7 +122,7 @@ export default function RecruitmentPortal({ onBack }) {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="two-col-grid">
             <label>
               Full Name *
               <input
@@ -148,7 +148,7 @@ export default function RecruitmentPortal({ onBack }) {
             </label>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="two-col-grid">
             <label>
               Student Email address *
               <input
@@ -173,7 +173,7 @@ export default function RecruitmentPortal({ onBack }) {
             </label>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="two-col-grid">
             <label>
               Target Domain *
               <select
@@ -229,7 +229,7 @@ export default function RecruitmentPortal({ onBack }) {
             </label>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="two-col-grid">
             <label>
               GitHub Link
               <input

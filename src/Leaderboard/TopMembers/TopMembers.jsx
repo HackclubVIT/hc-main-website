@@ -70,7 +70,7 @@ export default function TopMembers({ users, projects }) {
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+          <div className="two-col-grid" style={{ gap: '32px' }}>
             <div>
               <h3 style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px', marginBottom: '16px' }}>Badges Earned</h3>
               <BadgeList badges={selectedMember.badges} />

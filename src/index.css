@@ -55,6 +55,42 @@ body {
   color: var(--text);
 }
 
+/* The default OS scrollbar (light gray track) clashes with the dark theme,
+   so the main page scroll is hidden entirely — the page still scrolls
+   normally via wheel/trackpad/keys, just without the visible bar. */
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+/* Inner scrollable panels (sidebars, tables, modals) keep a visible —
+   but slim, theme-colored — scrollbar instead of the native gray one. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(172, 18, 12, 0.45) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(172, 18, 12, 0.45);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(208, 125, 34, 0.6);
+}
+
 button,
 input {
   font: inherit;
