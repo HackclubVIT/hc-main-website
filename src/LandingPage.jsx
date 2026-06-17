@@ -37,7 +37,7 @@ const EVENTS = [
     tag: "HACKATHON",
     name: "HackNight 24-25",
     date: "March 1-3, 2025",
-    desc: "Our flagship 48h build hackathon.",
+    desc: "Our flagship 36h hackathon. Filled with energetic vibes and crazy innovations across the event.",
     image: "/images/hacknight.jpg",
     seed: 7,
   },
