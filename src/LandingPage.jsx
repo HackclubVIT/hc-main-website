@@ -119,7 +119,7 @@ const BOARD = [
   { name: "Atul Krishnan", role: "Chairperson", tag: "BOARD", blurb: "", deg: 0 },
   { name: "Harleen", role: "Vice Chairperson", tag: "BOARD", blurb: "\"I don't exist\"", deg: 90 },
   { name: "Ojas Singh", role: "Secretary", tag: "BOARD", blurb: "The calm behind the calendar chaos.", deg: 180 },
-  { name: "Ivan George", role: "Co-Secretry", tag: "BOARD", blurb: “\"I don’t know what’s going on either, but I’m here\"”, deg: 270 },
+  { name: "Ivan George", role: "Co-Secretry", tag: "BOARD", blurb: '"I don\'t know what\'s going on either, but I\'m here."', deg: 270 },
 ];
 
 const CORE = [
