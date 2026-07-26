@@ -20,7 +20,7 @@ export default function RecruitmentPortal({ onBack }) {
   const [success, setSuccess] = useState(false);
 
   const validateEmail = (email) => {
-    const regex = /^[a-zA-Z-]+\.([a-zA-Z-]+)?[0-9]{4}@vitstudent\.ac\.in$/;
+    const regex = /^[^@]+@vitstudent\.ac\.in$/;
     return regex.test(email);
   };
 
