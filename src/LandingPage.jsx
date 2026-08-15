@@ -883,7 +883,7 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           <h2>
             Ready to build<span className="o">?</span>
           </h2>
-          <p>Recruitment for 2026 is Online.</p>
+          <p>Recruitment for 2026 is Offline. Wait Eagerly</p>
           <div className="hc-cta-row center">
             <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               Apply now
