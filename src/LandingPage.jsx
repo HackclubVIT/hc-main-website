@@ -728,7 +728,7 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           </div>
           <div className="hc-topbar-right">
             <div className="hc-topbar-status">
-              <span className="hc-dot" /> RECRUITMENT '26 — OFFLINE
+              <span className="hc-dot" /> RECRUITMENT '26 — ONLINE
             </div>
             <button className="hc-login" type="button" onClick={onLogin}>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
@@ -748,12 +748,12 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           </p>
 
           <div className="hc-cta-row">
-            {/* <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
+            <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M5 19l6-6M14 4l6 6-9 9-6-6 9-9z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Recruitment Website
-            </a> */}
+            </a>
             <a className="hc-btn ghost" href="https://discord.gg/zvvux9aAq" target="_blank" rel="noreferrer">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M8.5 15.5c2.2 1 4.8 1 7 0M9 11h.01M15 11h.01M7 5c3.3-1.3 6.7-1.3 10 0l2 11c-1.5 1.6-3.3 2.5-5 3l-1-2h-2l-1 2c-1.7-.5-3.5-1.4-5-3L7 5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
@@ -883,11 +883,11 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
           <h2>
             Ready to build<span className="o">?</span>
           </h2>
-          <p>Recruitment for 2026 is Offline. Wait Eagerly</p>
+          <p>Recruitment for 2026 is Online.</p>
           <div className="hc-cta-row center">
-            {/* <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
+            <a className="hc-btn solid" href="#" onClick={(e) => { e.preventDefault(); onOpenRecruitment(); }}>
               Apply now
-            </a> */}
+            </a>
             {/* <a className="hc-btn ghost" href="mailto:hello@hackclub.example">
               hello@hackclub.example
             </a> */}
