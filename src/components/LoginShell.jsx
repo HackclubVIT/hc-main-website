@@ -25,7 +25,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
     setError('')
     setSuccessMessage('')
   }
-  
+
   // Signup States
   const [isSignUp, setIsSignUp] = useState(false)
   const [signUpData, setSignUpData] = useState({ name: '', registerNumber: '', email: '', password: '', confirmPassword: '', department: '' })
@@ -46,10 +46,10 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
     if (!/[a-z]/.test(p)) return "Password must have at least 1 lowercase letter.";
     if (!/[0-9]/.test(p)) return "Password must have at least 1 digit.";
     if (!/[^A-Za-z0-9]/.test(p)) return "Password must have at least 1 special character.";
-    
+
     // Consecutive identical
     if (/([a-zA-Z0-9])\1/.test(p)) return "No identical consecutive alphabets or numbers allowed (e.g., 'aa', '11').";
-    
+
     // Sequential
     for (let i = 0; i < p.length - 1; i++) {
       let c1 = p.charCodeAt(i);
@@ -64,7 +64,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
   const validateEmail = (email) => {
     if (email === 'khandelwalprachi42@gmail.com') return true;
     if (email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in') return true;
-    const regex = /^[a-zA-Z-]+\.([a-zA-Z-]+)?[0-9]{4}@vitstudent\.ac\.in$/;
+    const regex = /^[^@]+@vitstudent\.ac\.in$/;
     return regex.test(email);
   };
 
@@ -97,7 +97,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
       return;
     }
     if (!validateEmail(email)) {
-      setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
+      setError('Enter a valid student email ending with @vitstudent.ac.in');
       return;
     }
 
@@ -126,7 +126,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
 
     const trimmedEmail = signUpData.email.trim();
     if (!validateEmail(trimmedEmail)) {
-      setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
+      setError('Enter a valid student email ending with @vitstudent.ac.in');
       return;
     }
 
@@ -168,7 +168,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
           <span>h.</span>
         </div>
         <h1>HackClub VIT Chennai</h1>
-        
+
         {showForgotPassword ? (
           <>
             <p>
@@ -196,7 +196,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                 const email = forgotPasswordEmail ? forgotPasswordEmail.trim() : '';
                 if (!email) { setError('Please enter your email address.'); return; }
                 if (!validateEmail(email)) {
-                  setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
+                  setError('Enter a valid student email ending with @vitstudent.ac.in');
                   return;
                 }
                 setLoading(true);
@@ -358,7 +358,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   {successMessage}
                 </div>
               )}
-              
+
               <label>
                 Full Name / Username
                 <input
@@ -433,7 +433,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
               <button className="button button-primary" type="submit" disabled={loading}>
                 {loading ? 'Creating Account...' : 'Sign Up & Register'}
               </button>
-              
+
               <button
                 className="button button-secondary"
                 type="button"
@@ -456,7 +456,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
         ) : (
           <>
             <p style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--amber)', letterSpacing: '0.05em' }}>{loginMode === 'admin' ? 'ADMIN PORTAL' : 'USER PORTAL'}</p>
-            
+
             {/* Auth Method Selector */}
             <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px', marginBottom: '20px' }}>
               <button
@@ -481,7 +481,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
               event.preventDefault()
               setError('')
               setSuccessMessage('')
-              
+
               const email = credentials.email ? credentials.email.trim() : '';
               if (!email) {
                 setError('Please fill in your email.');
@@ -489,7 +489,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
               }
 
               if (!validateEmail(email)) {
-                setError('Enter your student email only in format name.year@vitstudent.ac.in or name.lastnameyear@vitstudent.ac.in');
+                setError('Enter a valid student email ending with @vitstudent.ac.in');
                 return;
               }
 
@@ -502,7 +502,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   setError('Please enter the OTP sent to your email.');
                   return;
                 }
-                
+
                 setLoading(true);
                 try {
                   const res = await api.loginOtp(email, otp, loginMode);
@@ -526,7 +526,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                   setError(passError);
                   return;
                 }
-                
+
                 setLoading(true);
                 try {
                   const res = await api.login(email, credentials.password, loginMode);
@@ -592,7 +592,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                       />
                     </label>
                   )}
-                  
+
                   {otpSent ? (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', fontSize: '0.85rem' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Didn't receive email? Check spam.</span>
@@ -648,7 +648,7 @@ export default function LoginShell({ onLogin, onBackToLanding }) {
                       </button>
                     </div>
                   </label>
-                  
+
                   <div style={{ textAlign: 'right', marginBottom: '16px' }}>
                     <a href="#" style={{ color: 'var(--highlight)', fontSize: '0.85rem', textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); setShowForgotPassword(true); setForgotStage('email'); setForgotOtp(''); setNewPassword(''); setConfirmNewPassword(''); setForgotPasswordEmail(credentials.email || ''); setError(''); setSuccessMessage(''); }}>Forgot Password?</a>
                   </div>
