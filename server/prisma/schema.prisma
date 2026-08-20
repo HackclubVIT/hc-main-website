@@ -44,11 +44,17 @@ model Project {
   id                BigInt  @id
   title             String
   description       String?
+  category          String  @default("Web Development")
+  problemStatement  String?
+  solution          String?
+  screenshots       Json    @default("[]")
+  demoVideoUrl      String?
   github            String?
   deployment        String?
-  status            String  @default("Pending")
+  status            String  @default("PENDING_REVIEW")
   owner             String?
   rating            String  @default("0.0")
+  ratingCount       Int     @default(0)
   contributors      String?
   submissionDate    String?
   technologiesUsed  Json    @default("[]")
@@ -58,10 +64,25 @@ model Project {
   @@map("projects")
 }
 
+model ProjectRating {
+  id        BigInt   @id
+  projectId BigInt
+  adminId   BigInt
+  adminName String
+  rating    Float
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, adminId])
+  @@map("project_ratings")
+}
+
 // Recruitment form submissions. Unique email + register number guarantee one
 // application per person.
 model RecruitmentApplication {
   id             BigInt  @id
+  recruitmentId  String  @default("recruitment-2026")
   name           String
   registerNumber String  @unique
   email          String  @unique

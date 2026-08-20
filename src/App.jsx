@@ -14,7 +14,8 @@ function App() {
   const [authenticated, setAuthenticated] = useState(false)
   const [showSplash, setShowSplash] = useState(false)
   const [sessionType, setSessionType] = useState(null)
-  
+
+
   const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   // Global Sync States
@@ -67,6 +68,7 @@ function App() {
 
   // Restore session from localStorage on mount
   useEffect(() => {
+
     const token = getToken()
     if (token) {
       api.getMe()
@@ -297,6 +299,8 @@ function App() {
       </div>
     );
   }
+
+
 
   if (showLanding) {
     return <HackClubLanding onLogin={() => setShowLanding(false)} onOpenRecruitment={() => { setShowLanding(false); setShowRecruitment(true); }} />

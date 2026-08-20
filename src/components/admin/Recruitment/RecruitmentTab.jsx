@@ -9,7 +9,7 @@ export default function RecruitmentTab({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('Pending');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -107,6 +107,8 @@ export default function RecruitmentTab({
             }}
           >
             <option value="Pending">Pending</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Shortlisted">Shortlisted</option>
             <option value="Accepted">Accepted</option>
             <option value="Rejected">Rejected</option>
             <option value="All">All Statuses</option>
@@ -245,16 +247,37 @@ export default function RecruitmentTab({
                 Close
               </button>
               
-              {selectedApplicant.status === 'Pending' && (
-                <>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {selectedApplicant.status !== 'Under Review' && (
+                  <button 
+                    className="button button-secondary"
+                    disabled={updatingId !== null}
+                    onClick={() => handleUpdateStatus(selectedApplicant.id, 'Under Review')}
+                  >
+                    Set Under Review
+                  </button>
+                )}
+                {selectedApplicant.status !== 'Shortlisted' && (
+                  <button 
+                    className="button button-outlined"
+                    disabled={updatingId !== null}
+                    onClick={() => handleUpdateStatus(selectedApplicant.id, 'Shortlisted')}
+                    style={{ borderColor: 'var(--amber)', color: 'var(--amber)' }}
+                  >
+                    Shortlist
+                  </button>
+                )}
+                {selectedApplicant.status !== 'Rejected' && (
                   <button 
                     className="button button-secondary"
                     disabled={updatingId !== null}
                     onClick={() => handleUpdateStatus(selectedApplicant.id, 'Rejected')}
                     style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}
                   >
-                    {updatingId === selectedApplicant.id ? 'Updating...' : 'Reject'}
+                    Reject
                   </button>
+                )}
+                {selectedApplicant.status !== 'Accepted' && (
                   <button 
                     className="button button-primary"
                     disabled={updatingId !== null}
@@ -263,17 +286,8 @@ export default function RecruitmentTab({
                   >
                     {updatingId === selectedApplicant.id ? 'Promoting...' : 'Accept & Promote'}
                   </button>
-                </>
-              )}
-
-              {selectedApplicant.status !== 'Pending' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  <span>Processed:</span>
-                  <strong style={{ color: selectedApplicant.status === 'Accepted' ? '#81c784' : '#e57373' }}>
-                    {selectedApplicant.status}
-                  </strong>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

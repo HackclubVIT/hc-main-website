@@ -172,6 +172,88 @@
   ],
   "projects": [
     {
+      "id": 1787245879231,
+      "title": "vbkbdmf",
+      "description": "cv k lvbdfkmlv",
+      "category": "Web Development",
+      "problemStatement": "dfk bgblgfbfkl",
+      "solution": "vcml  vkmlbdfkm",
+      "screenshots": [
+        "https://your-project.vercel.png"
+      ],
+      "demoVideoUrl": null,
+      "github": "https://github.com/prachikkk101/fake-project",
+      "deployment": "https://your-project.vercel.app",
+      "status": "UNDER_REVIEW",
+      "owner": "Khandelwalprachi",
+      "rating": "5.5",
+      "ratingCount": 1,
+      "submissionDate": "2026-08-20",
+      "technologiesUsed": [
+        "React",
+        "Node.js",
+        "CSS"
+      ],
+      "individualRatings": [
+        {
+          "user": "Prachikhandelwal",
+          "rating": 5.5,
+          "comment": ""
+        }
+      ],
+      "awards": []
+    },
+    {
+      "id": 1787245858813,
+      "title": "AI Smart Irrigation",
+      "description": "Automated water conservation tool using IoT and React.",
+      "category": "Systems & IoT",
+      "problemStatement": "Water wastage in campus lawns.",
+      "solution": "Automated sensor feedback.",
+      "screenshots": [],
+      "demoVideoUrl": null,
+      "github": "https://github.com/test/irrigation",
+      "deployment": "https://irrigation.dev",
+      "status": "PENDING_REVIEW",
+      "owner": "Test User",
+      "rating": "0.0",
+      "ratingCount": 0,
+      "submissionDate": "2026-08-20",
+      "technologiesUsed": [
+        "React",
+        "Python",
+        "Arduino"
+      ],
+      "individualRatings": [],
+      "awards": []
+    },
+    {
+      "id": 1787245537936,
+      "title": "vbkbdmf",
+      "description": "cv k lvbdfkmlv",
+      "category": "Web Development",
+      "problemStatement": "dfk bgblgfbfkl",
+      "solution": "vcml  vkmlbdfkm",
+      "screenshots": [
+        "https://your-project.vercel.png"
+      ],
+      "demoVideoUrl": null,
+      "github": "https://github.com/prachikkk101/fake-project",
+      "deployment": "https://your-project.vercel.app",
+      "status": "PENDING_REVIEW",
+      "owner": "Khandelwalprachi",
+      "rating": "0.0",
+      "ratingCount": 0,
+      "submissionDate": "2026-08-20",
+      "technologiesUsed": [
+        "React",
+        "Node.js",
+        "CSS"
+      ],
+      "individualRatings": [],
+      "awards": []
+    },
+    {
       "id": 101,
       "title": "Campus AI Mentor",
       "owner": "Ananya Rao",
@@ -443,6 +525,22 @@
     }
   ],
   "recruitmentApplications": [
+    {
+      "id": 1787242662979,
+      "recruitmentId": "recruitment-2026",
+      "name": "prachi khandelwal",
+      "registerNumber": "24BPS1138",
+      "email": "prachikhandelwal2024@vitstudent.ac.in",
+      "phoneNumber": "7878148960",
+      "domain": "Web Development",
+      "yearOfStudy": "1st",
+      "github": "github.com/prachi101",
+      "linkedin": "prachi khandelwal",
+      "whyJoin": "............",
+      "projectDetails": ".............",
+      "status": "Pending",
+      "appliedDate": "2026-08-20"
+    },
     {
       "id": 1781614953204,
       "name": "Ojas Singh",

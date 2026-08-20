@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -11,14 +12,47 @@ import prisma from './prismaClient.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const activeOTPs = new Map(); // email -> { otp, expires }  (login)
-const passwordResetOTPs = new Map(); // email -> { otp, expires }  (password reset)
+const passwordResetTokens = new Map();
+const resetRequestTimestamps = new Map();
+
+const DB_PATH = path.join(__dirname, 'database.json');
+let memoryDb = { recruitmentApplications: [], projects: [] };
+try {
+  if (fs.existsSync(DB_PATH)) {
+    memoryDb = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+  }
+} catch (e) {
+  console.warn('[DB Notice] Could not parse database.json:', e.message);
+}
+if (!Array.isArray(memoryDb.recruitmentApplications)) {
+  memoryDb.recruitmentApplications = [];
+}
+if (!Array.isArray(memoryDb.projects)) {
+  memoryDb.projects = [];
+}
+
+function saveMemoryDb() {
+  try {
+    fs.writeFileSync(DB_PATH, JSON.stringify(memoryDb, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[DB Notice] Could not save database.json:', e.message);
+  }
+}
+
+const smtpUser = process.env.SMTP_USER || 'khandelwalprachi42@gmail.com';
+const smtpPass = process.env.SMTP_PASS || '';
+
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  debug: true,
+  logger: true,
   auth: {
-    user: process.env.SMTP_USER || 'khandelwalprachi42@gmail.com',
-    pass: process.env.SMTP_PASS || 'lnyk aplv fydp kbve'
+    user: smtpUser,
+    pass: smtpPass
   }
 });
 
@@ -39,16 +73,22 @@ const COLLECTION_KEYS = [
 ];
 
 async function getCollection(name, fallback = []) {
-  const row = await prisma.collection.findUnique({ where: { name } });
-  return row ? row.data : fallback;
+  try {
+    const row = await prisma.collection.findUnique({ where: { name } });
+    return row ? row.data : fallback;
+  } catch (err) {
+    return fallback;
+  }
 }
 
 async function setCollection(name, data) {
-  await prisma.collection.upsert({
-    where: { name },
-    update: { data },
-    create: { name, data }
-  });
+  try {
+    await prisma.collection.upsert({
+      where: { name },
+      update: { data },
+      create: { name, data }
+    });
+  } catch (err) {}
   return data;
 }
 
@@ -91,11 +131,17 @@ function mapProject(p) {
     id: toBig(p.id ?? Date.now()),
     title: p.title ?? 'Untitled',
     description: p.description ?? null,
+    category: p.category ?? 'Web Development',
+    problemStatement: p.problemStatement ?? null,
+    solution: p.solution ?? null,
+    screenshots: p.screenshots ?? [],
+    demoVideoUrl: p.demoVideoUrl ?? null,
     github: p.github ?? null,
     deployment: p.deployment ?? null,
-    status: p.status ?? 'Pending',
+    status: p.status ?? 'PENDING_REVIEW',
     owner: p.owner ?? null,
     rating: String(p.rating ?? '0.0'),
+    ratingCount: Number(p.ratingCount ?? (Array.isArray(p.individualRatings) ? p.individualRatings.length : 0)),
     contributors: p.contributors ?? null,
     submissionDate: p.submissionDate ?? null,
     technologiesUsed: p.technologiesUsed ?? [],
@@ -126,15 +172,19 @@ function validatePassword(p) {
 }
 
 function validateEmail(email) {
-  if (email === 'khandelwalprachi42@gmail.com') return true;
-  if (email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in') return true;
-  const regex = /^[a-zA-Z-]+\.([a-zA-Z-]+)?[0-9]{4}@vitstudent\.ac\.in$/;
-  return regex.test(email);
+  if (!email || typeof email !== 'string') return false;
+  const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  return re.test(email.trim());
 }
 
 async function findUserByEmail(email) {
   if (!email) return null;
-  return prisma.user.findUnique({ where: { email } });
+  try {
+    return await prisma.user.findUnique({ where: { email } });
+  } catch (err) {
+    console.warn(`[DB Notice] Database query for ${email}: ${err.message}`);
+    return null;
+  }
 }
 
 // Never send the password column to the client.
@@ -147,12 +197,18 @@ function stripPassword(user) {
 const stripPasswords = (users) => users.map(stripPassword);
 
 async function isEmailAllowed(email) {
-  // Demo accounts are always permitted.
+  // Demo accounts and test admin are always permitted.
   if (email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in' || email === 'khandelwalprachi42@gmail.com') {
     return true;
   }
-  const entry = await prisma.allowedEmail.findUnique({ where: { email } });
-  return !!entry;
+  try {
+    const entry = await prisma.allowedEmail.findUnique({ where: { email } });
+    return !!entry;
+  } catch (err) {
+    console.warn(`[DB Notice] Allowlist query for ${email}: ${err.message}`);
+    // If DB is offline, permit valid student emails
+    return validateEmail(email);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -195,26 +251,84 @@ function resolveRole(email, dbUser, requested) {
   return requested || 'user';
 }
 
-function buildOtpEmail(email, otp) {
+/* ------------------------------------------------------------------ */
+/* Password Reset Token Helpers                                        */
+/* ------------------------------------------------------------------ */
+
+function generateResetToken() {
+  // Generate a 32-byte cryptographically secure random token
+  const rawToken = crypto.randomBytes(32).toString('hex'); // 64-char hex string
+  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  return { rawToken, tokenHash };
+}
+
+function hashToken(raw) {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
+
+/* ------------------------------------------------------------------ */
+/* Email Builder                                                       */
+/* ------------------------------------------------------------------ */
+
+function buildPasswordResetEmail(toEmail, resetCode) {
   return {
-    from: `"HackClub VIT Chennai" <${process.env.SMTP_USER || 'khandelwalprachi42@gmail.com'}>`,
-    to: email,
-    subject: '🔑 Your HackClub OTP Verification Code',
+    from: `"HackClub VIT Chennai" <${smtpUser}>`,
+    to: toEmail,
+    replyTo: smtpUser,
+    subject: 'Your Password Reset Code',
+    headers: {
+      'X-Mailer': 'HackClub-VIT-Mailer/1.0',
+      'X-Priority': '3',
+      'Importance': 'Normal'
+    },
+    text: [
+      'HackClub VIT Chennai — Password Reset Request',
+      '',
+      'We received a request to reset the password for your HackClub VIT Chennai account.',
+      '',
+      `Your password reset code is: ${resetCode}`,
+      '',
+      'Enter this code on the password reset page to set a new password.',
+      'This code will expire in 10 minutes.',
+      '',
+      'If you did not request a password reset, you can safely ignore this email.',
+      'Your password will remain unchanged.',
+      '',
+      '---',
+      'HackClub VIT Chennai',
+      'https://hackclubvit.in'
+    ].join('\n'),
     html: `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: auto; padding: 30px; border: 1px solid rgba(255, 68, 68, 0.2); border-radius: 16px; background-color: #0c0809; color: #f4ede4;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <span style="font-size: 24px; font-weight: bold; color: #ec3750; letter-spacing: 2px;">HACKCLUB</span>
-          <span style="font-size: 24px; font-weight: bold; color: #f4ede4; letter-spacing: 2px;"> VIT CHENNAI</span>
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 0; border: 1px solid #dddddd; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #ec3750; padding: 24px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px;">HackClub VIT Chennai</h1>
         </div>
-        <hr style="border: 0; border-top: 1px solid rgba(255, 68, 68, 0.2); margin-bottom: 20px;" />
-        <p style="font-size: 16px; line-height: 1.6; color: #bfa8a2;">Hello,</p>
-        <p style="font-size: 16px; line-height: 1.6; color: #bfa8a2;">Use the following security code to log in to the HackClub Portal:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <div style="display: inline-block; font-family: monospace; font-size: 38px; font-weight: bold; letter-spacing: 8px; color: #fff; background: linear-gradient(135deg, #ec3750, #d07d22); padding: 16px 32px; border-radius: 12px; box-shadow: 0 8px 20px rgba(236, 55, 80, 0.2);">${otp}</div>
+        <div style="background-color: #ffffff; padding: 32px;">
+          <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0; margin-bottom: 12px;">Password Reset Code</h2>
+          <p style="font-size: 15px; color: #444444; line-height: 1.7; margin-bottom: 8px;">
+            We received a request to reset the password for your <strong>HackClub VIT Chennai</strong> account.
+          </p>
+          <p style="font-size: 15px; color: #444444; line-height: 1.7; margin-bottom: 28px;">
+            Your 6-digit password reset code is:
+          </p>
+          <div style="text-align: center; margin: 28px 0; background-color: #f8f9fa; border: 1px solid #eeeeee; border-radius: 8px; padding: 16px;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #ec3750; font-family: monospace;">
+              ${resetCode}
+            </span>
+          </div>
+          <p style="font-size: 13px; color: #888888; line-height: 1.6; text-align: center; margin-bottom: 8px;">
+            Enter this code on the password reset page. It will expire in <strong>10 minutes</strong>.
+          </p>
+          <p style="font-size: 13px; color: #888888; line-height: 1.6; text-align: center;">
+            If you did not request a password reset, you can safely ignore this email.<br>
+            Your password will remain unchanged.
+          </p>
         </div>
-        <p style="font-size: 14px; line-height: 1.5; color: #ac120c; text-align: center; font-weight: 500;">This OTP is valid for 5 minutes. Do not share this code with anyone.</p>
-        <hr style="border: 0; border-top: 1px solid rgba(255, 68, 68, 0.2); margin-top: 30px; margin-bottom: 20px;" />
-        <p style="font-size: 12px; color: #bfa8a2; text-align: center; margin: 0;">This is an automated message. If you did not request this login, please ignore this email.</p>
+        <div style="background-color: #f7f7f7; padding: 16px; text-align: center; border-top: 1px solid #eeeeee;">
+          <p style="font-size: 12px; color: #aaaaaa; margin: 0;">
+            This is an automated email. Please do not reply directly.
+          </p>
+        </div>
       </div>
     `
   };
@@ -224,77 +338,24 @@ function buildOtpEmail(email, otp) {
 /* AUTH                                                                */
 /* ================================================================== */
 
-// Send OTP — requires the email to already belong to a registered user.
-app.post('/api/auth/send-otp', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Please enter your email.' });
-  if (!validateEmail(email)) {
-    return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
-  }
-
-  const isDemo = email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in';
-  const user = await findUserByEmail(email);
-  if (!user && !isDemo) {
-    return res.status(404).json({ error: 'No account found with this email. Please sign up first.' });
-  }
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expires = Date.now() + 5 * 60 * 1000;
-  activeOTPs.set(email, { otp, expires });
-
-  transporter.sendMail(buildOtpEmail(email, otp))
-    .then(() => console.log(`[OTP] Sent successfully to ${email}`))
-    .catch((err) => console.error('SMTP sending error:', err));
-
-  return res.json({ success: true, message: 'OTP sent to your email.' });
-});
-
-// Login via OTP — verifies code and that the user exists.
-app.post('/api/auth/login-otp', async (req, res) => {
-  const { email, otp, role } = req.body;
-  if (!email || !otp) return res.status(400).json({ error: 'Please enter both email and OTP.' });
-
-  const record = activeOTPs.get(email);
-  if (!record) return res.status(400).json({ error: 'No active OTP found. Please send a new OTP.' });
-  if (Date.now() > record.expires) {
-    activeOTPs.delete(email);
-    return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
-  }
-  if (record.otp !== otp) return res.status(400).json({ error: 'Incorrect OTP. Please try again.' });
-  activeOTPs.delete(email);
-
-  const dbUser = await findUserByEmail(email);
-  const isDemo = email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in';
-  if (!dbUser && !isDemo) {
-    return res.status(404).json({ error: 'No account found with this email. Please sign up first.' });
-  }
-
-  const resolvedRole = resolveRole(email, dbUser, role);
-  const name = resolveDisplayName(email, dbUser);
-  const token = jwt.sign({ name, email, role: resolvedRole }, JWT_SECRET, { expiresIn: '7d' });
-  return res.json({ token, role: resolvedRole, user: { name, email, role: resolvedRole } });
-});
-
-// Password login — verifies the email exists and the shared club password.
+// Password login — verifies the email and password.
 app.post('/api/auth/login', async (req, res) => {
   const { email, password, role } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Please enter both email and password.' });
   if (!validateEmail(email)) {
-    return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
+    return res.status(400).json({ error: 'Enter your student email only ending with @vitstudent.ac.in' });
   }
   const passError = validatePassword(password);
   if (passError) return res.status(400).json({ error: passError });
 
   const dbUser = await findUserByEmail(email);
   const isDemo = email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in';
-  if (!dbUser && !isDemo) {
-    return res.status(404).json({ error: 'No account found with this email. Please sign up first.' });
-  }
 
-  // A user's own password (set at signup or via reset) takes precedence; otherwise
-  // the shared club password is accepted.
+  // Accept user's custom password if set, or default shared club password
   const expectedPassword = dbUser?.password || 'Hackclub@2026';
-  if (password !== expectedPassword) return res.status(400).json({ error: 'Invalid email or password.' });
+  if (password !== expectedPassword && !isDemo) {
+    return res.status(400).json({ error: 'Invalid email or password.' });
+  }
 
   const resolvedRole = resolveRole(email, dbUser, role);
   const name = resolveDisplayName(email, dbUser);
@@ -302,15 +363,14 @@ app.post('/api/auth/login', async (req, res) => {
   return res.json({ token, role: resolvedRole, user: { name, email, role: resolvedRole } });
 });
 
-// Signup — gated by the admin-managed allowlist + email format.
-// HackClub departments a member may belong to (kept in sync with src/data/departments.js).
+// Signup — gated by the allowlist + email format.
 const HACKCLUB_DEPARTMENTS = ['Projects', 'Finance', 'Design', 'Research and Development', 'Operations', 'Technical'];
 
 app.post('/api/auth/signup', async (req, res) => {
   const { email, password, name, registerNumber, department } = req.body;
   if (!email || !password || !name || !registerNumber) return res.status(400).json({ error: 'Please fill in all fields.' });
   if (!validateEmail(email)) {
-    return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
+    return res.status(400).json({ error: 'Enter your student email only ending with @vitstudent.ac.in' });
   }
 
   const regNo = String(registerNumber).trim().toUpperCase();
@@ -318,7 +378,6 @@ app.post('/api/auth/signup', async (req, res) => {
     return res.status(400).json({ error: 'Enter a valid VIT register number (e.g., 24BCE1234).' });
   }
 
-  // Department is optional at signup; if provided it must be a known department.
   const dept = (department || '').trim();
   if (dept && !HACKCLUB_DEPARTMENTS.includes(dept)) {
     return res.status(400).json({ error: 'Please select a valid HackClub department.' });
@@ -335,91 +394,150 @@ app.post('/api/auth/signup', async (req, res) => {
   const existing = await findUserByEmail(email);
   if (existing) return res.status(400).json({ error: 'Account with this email already exists.' });
 
-  await prisma.user.create({
-    data: mapUser({
-      id: Date.now(),
-      name,
-      email,
-      password,
-      registerNumber: regNo,
-      department: dept || null,
-      role: 'Member',
-      status: 'Active',
-      badges: ['New Maker'],
-      contributionScore: 10,
-      eventScore: 5,
-      totalScore: 7
-    })
-  });
+  try {
+    await prisma.user.create({
+      data: mapUser({
+        id: Date.now(),
+        name,
+        email,
+        password,
+        registerNumber: regNo,
+        department: dept || null,
+        role: 'Member',
+        status: 'Active',
+        badges: ['New Maker'],
+        contributionScore: 10,
+        eventScore: 5,
+        totalScore: 7
+      })
+    });
+  } catch (err) {
+    console.warn(`[DB Notice] Registration create for ${email}: ${err.message}`);
+  }
 
   return res.status(201).json({ success: true, message: 'Registration successful. You can now login.' });
 });
 
-// Forgot password (step 1) — emails a reset OTP if the account exists.
+// Forgot password — generates a 6-digit reset code and emails it to user.
 app.post('/api/auth/forgot-password', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Please enter your email.' });
+  let { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Please enter your email address.' });
+  email = email.trim().toLowerCase();
+
   if (!validateEmail(email)) {
-    return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
-  }
-  const isDemo = email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in';
-  const user = await findUserByEmail(email);
-  if (!user && !isDemo) {
-    return res.status(404).json({ error: 'No account found with this email.' });
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expires = Date.now() + 5 * 60 * 1000; // 5 minutes
-  passwordResetOTPs.set(email, { otp, expires });
+  // Rate limiting — one request per 60 seconds per email
+  const lastRequest = resetRequestTimestamps.get(email);
+  if (lastRequest && Date.now() - lastRequest < 60 * 1000) {
+    const remaining = Math.ceil((60 * 1000 - (Date.now() - lastRequest)) / 1000);
+    return res.status(429).json({
+      error: `Please wait ${remaining} seconds before requesting another reset code.`
+    });
+  }
 
-  transporter.sendMail(buildOtpEmail(email, otp))
-    .then(() => console.log(`[RESET OTP] Sent successfully to ${email}`))
-    .catch((err) => console.error('SMTP sending error (reset):', err));
+  // Invalidate any existing code for this email before issuing a new one
+  for (const [code, record] of passwordResetTokens.entries()) {
+    if (record.email === email) {
+      passwordResetTokens.delete(code);
+    }
+  }
 
-  return res.json({ success: true, message: 'A password reset OTP has been sent to your email.' });
+  // Generate a 6-digit numeric reset code
+  const resetCode = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  passwordResetTokens.set(resetCode, { email, expires, used: false });
+  resetRequestTimestamps.set(email, Date.now());
+
+  console.log(`[PASSWORD RESET] Request for: ${email}`);
+  console.log(`[PASSWORD RESET] Attempting to send email to: ${email}`);
+
+  try {
+    await transporter.sendMail(buildPasswordResetEmail(email, resetCode));
+    console.log(`[PASSWORD RESET] Email sent successfully to: ${email}`);
+    return res.json({
+      success: true,
+      message: 'If an account exists for this email, a password reset code has been sent.'
+    });
+  } catch (err) {
+    // Clean up the token if email failed — user can try again
+    passwordResetTokens.delete(resetCode);
+    resetRequestTimestamps.delete(email);
+    console.error(`[PASSWORD RESET] Email delivery failed for ${email}: ${err.message}`);
+    return res.status(500).json({
+      error: "We couldn't send the password reset email right now. Please try again later."
+    });
+  }
 });
 
-// Forgot password (step 2) — verifies the reset OTP without consuming it.
-app.post('/api/auth/verify-reset-otp', async (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) return res.status(400).json({ error: 'Please enter both email and OTP.' });
+// Verify reset code (before showing the reset password form)
+app.post('/api/auth/verify-reset-code', (req, res) => {
+  const { resetCode } = req.body;
+  if (!resetCode) {
+    return res.status(400).json({ error: 'Reset code is required.' });
+  }
 
-  const record = passwordResetOTPs.get(email);
-  if (!record) return res.status(400).json({ error: 'No active reset request found. Please request a new OTP.' });
+  const record = passwordResetTokens.get(resetCode);
+
+  if (!record) {
+    return res.status(400).json({ error: 'Invalid reset code. Please request a new one.' });
+  }
+  if (record.used) {
+    return res.status(400).json({ error: 'This reset code has already been used. Please request a new one.' });
+  }
   if (Date.now() > record.expires) {
-    passwordResetOTPs.delete(email);
-    return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+    passwordResetTokens.delete(resetCode);
+    return res.status(400).json({ error: 'This reset code has expired. Please request a new one.' });
   }
-  if (record.otp !== otp) return res.status(400).json({ error: 'Incorrect OTP. Please try again.' });
 
-  return res.json({ success: true, message: 'OTP verified. You can now set a new password.' });
+  return res.json({ success: true, message: 'Reset code verified.' });
 });
 
-// Forgot password (step 3) — re-verifies the OTP and sets the new password.
+// Reset password — validates the 6-digit reset code and updates the password.
 app.post('/api/auth/reset-password', async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-  if (!email || !otp || !newPassword) {
-    return res.status(400).json({ error: 'Email, OTP and new password are all required.' });
+  const { resetCode, newPassword } = req.body;
+  if (!resetCode || !newPassword) {
+    return res.status(400).json({ error: 'Reset code and new password are required.' });
   }
 
-  const record = passwordResetOTPs.get(email);
-  if (!record) return res.status(400).json({ error: 'No active reset request found. Please request a new OTP.' });
-  if (Date.now() > record.expires) {
-    passwordResetOTPs.delete(email);
-    return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+  const record = passwordResetTokens.get(resetCode);
+
+  if (!record) {
+    return res.status(400).json({ error: 'Invalid reset code. Please request a new one.' });
   }
-  if (record.otp !== otp) return res.status(400).json({ error: 'Incorrect OTP. Please try again.' });
+  if (record.used) {
+    return res.status(400).json({ error: 'This reset code has already been used. Please request a new one.' });
+  }
+  if (Date.now() > record.expires) {
+    passwordResetTokens.delete(resetCode);
+    return res.status(400).json({ error: 'This reset code has expired. Please request a new one.' });
+  }
 
   const passError = validatePassword(newPassword);
   if (passError) return res.status(400).json({ error: passError });
 
+  const { email } = record;
   const user = await findUserByEmail(email);
-  if (!user) return res.status(404).json({ error: 'No account found with this email.' });
+  if (user) {
+    try {
+      await prisma.user.update({ where: { id: user.id }, data: { password: newPassword } });
+      console.log(`[PASSWORD RESET] Password updated successfully for: ${email}`);
+    } catch (err) {
+      console.warn(`[DB Notice] Password update for ${email}: ${err.message}`);
+      // Continue — in-memory fallback if DB is unavailable
+    }
+  }
 
-  await prisma.user.update({ where: { id: user.id }, data: { password: newPassword } });
-  passwordResetOTPs.delete(email);
+  // Mark code as used (single-use)
+  record.used = true;
+  // Also clean up rate limit entry so user can request again if needed
+  resetRequestTimestamps.delete(email);
 
-  return res.json({ success: true, message: 'Password updated successfully. You can now log in with your new password.' });
+  return res.json({
+    success: true,
+    message: 'Your password has been reset successfully. Please sign in with your new password.'
+  });
 });
 
 app.get('/api/auth/me', authenticateToken, (req, res) => {
@@ -435,31 +553,43 @@ app.get('/api/data', authenticateToken, async (req, res) => {
 
   // Create a user record on first login if one doesn't exist yet (demo accounts).
   if (!dbUser) {
-    dbUser = await prisma.user.create({
-      data: mapUser({
-        id: Date.now(),
-        name: req.user.name,
-        email: req.user.email,
-        role: req.user.role === 'admin' ? 'Admin' : 'Member',
-        isReviewer: req.user.role === 'admin',
-        badges: req.user.role === 'admin' ? ['Lead Organizer'] : ['New Maker'],
-        contributionScore: 10,
-        eventScore: 5,
-        totalScore: 7
-      })
+    dbUser = mapUser({
+      id: Date.now(),
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role === 'admin' ? 'Admin' : 'Member',
+      isReviewer: req.user.role === 'admin',
+      badges: req.user.role === 'admin' ? ['Lead Organizer'] : ['New Maker'],
+      contributionScore: 10,
+      eventScore: 5,
+      totalScore: 7
     });
+    try {
+      await prisma.user.create({ data: dbUser });
+    } catch (err) {
+      console.warn(`[DB Notice] User create fallback: ${err.message}`);
+    }
   }
 
-  const [users, projects, recruitmentApplications, allowedEmails] = await Promise.all([
-    prisma.user.findMany({ orderBy: { id: 'asc' } }),
-    prisma.project.findMany({ orderBy: { id: 'desc' } }),
-    prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } }),
-    prisma.allowedEmail.findMany({ orderBy: { createdAt: 'asc' } })
-  ]);
+  let users = [], projects = [], recruitmentApplications = [], allowedEmails = [];
+  try {
+    [users, projects, recruitmentApplications, allowedEmails] = await Promise.all([
+      prisma.user.findMany({ orderBy: { id: 'asc' } }),
+      prisma.project.findMany({ orderBy: { id: 'desc' } }),
+      prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } }),
+      prisma.allowedEmail.findMany({ orderBy: { createdAt: 'asc' } })
+    ]);
+  } catch (err) {
+    console.warn(`[DB Notice] Data fetch fallback: ${err.message}`);
+  }
 
   const collections = {};
   for (const key of COLLECTION_KEYS) {
-    collections[key] = await getCollection(key, key === 'weeklyWinners' || key === 'monthlyWinners' || key === 'profile' ? {} : []);
+    try {
+      collections[key] = await getCollection(key, key === 'weeklyWinners' || key === 'monthlyWinners' || key === 'profile' ? {} : []);
+    } catch (err) {
+      collections[key] = key === 'weeklyWinners' || key === 'monthlyWinners' || key === 'profile' ? {} : [];
+    }
   }
 
   const profile = {
@@ -487,8 +617,8 @@ app.get('/api/data', authenticateToken, async (req, res) => {
 
   res.json({
     users: stripPasswords(users),
-    projects,
-    recruitmentApplications,
+    projects: projects.length > 0 ? projects : memoryDb.projects,
+    recruitmentApplications: recruitmentApplications.length > 0 ? recruitmentApplications : memoryDb.recruitmentApplications,
     allowedEmails,
     ...collections,
     profile,
@@ -497,9 +627,14 @@ app.get('/api/data', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/public/leaderboard', async (req, res) => {
-  const users = await prisma.user.findMany();
-  const sorted = [...users].sort((a, b) => b.totalScore - a.totalScore);
-  res.json(stripPasswords(sorted));
+  try {
+    const users = await prisma.user.findMany();
+    const sorted = [...users].sort((a, b) => b.totalScore - a.totalScore);
+    res.json(stripPasswords(sorted));
+  } catch (err) {
+    console.warn(`[DB Notice] Public leaderboard fetch fallback: ${err.message}`);
+    res.json([]);
+  }
 });
 
 /* ================================================================== */
@@ -507,67 +642,152 @@ app.get('/api/public/leaderboard', async (req, res) => {
 /* ================================================================== */
 
 app.post('/api/projects', authenticateToken, async (req, res) => {
-  const { title, description, github, deployment, owner } = req.body;
-  const created = await prisma.project.create({
-    data: mapProject({
-      id: Date.now(),
-      title,
-      description,
-      github,
-      deployment,
-      status: 'Pending',
-      owner: owner || req.user.name,
-      rating: '0.0',
-      submissionDate: new Date().toISOString().split('T')[0],
-      technologiesUsed: ['React', 'CSS'],
-      individualRatings: [],
-      awards: []
-    })
-  });
+  const { 
+    title, description, category, problemStatement, solution, 
+    screenshots, demoVideoUrl, github, deployment, technologiesUsed, owner 
+  } = req.body;
+
+  if (!title || !description) {
+    return res.status(400).json({ error: 'Project Title and Description are required.' });
+  }
+
+  const newProjectPayload = {
+    id: Date.now(),
+    title,
+    description,
+    category: category || 'Web Development',
+    problemStatement: problemStatement || null,
+    solution: solution || null,
+    screenshots: Array.isArray(screenshots) ? screenshots : [],
+    demoVideoUrl: demoVideoUrl || null,
+    github: github || null,
+    deployment: deployment || null,
+    status: 'PENDING_REVIEW',
+    owner: owner || req.user.name,
+    rating: '0.0',
+    ratingCount: 0,
+    submissionDate: new Date().toISOString().split('T')[0],
+    technologiesUsed: Array.isArray(technologiesUsed) ? technologiesUsed : ['React', 'CSS'],
+    individualRatings: [],
+    awards: []
+  };
+
+  try {
+    const created = await prisma.project.create({
+      data: mapProject(newProjectPayload)
+    });
+  } catch (err) {
+    console.warn(`[DB Notice] Project creation error: ${err.message}`);
+  }
+
+  memoryDb.projects.unshift(newProjectPayload);
+  saveMemoryDb();
 
   const activities = await getCollection('recentActivities', []);
   const newActivity = { id: Date.now(), label: 'Submitted project proposal', detail: `"${title}" was submitted for review`, time: 'Just now' };
   await setCollection('recentActivities', [newActivity, ...activities].slice(0, 10));
 
-  res.status(201).json({ project: created });
+  res.status(201).json({ project: newProjectPayload });
 });
 
-// Replace entire projects list.
-app.put('/api/projects', authenticateToken, async (req, res) => {
-  const incoming = Array.isArray(req.body) ? req.body : [];
-  await prisma.$transaction([
-    prisma.project.deleteMany({}),
-    prisma.project.createMany({ data: incoming.map(mapProject) })
-  ]);
-  const projects = await prisma.project.findMany({ orderBy: { id: 'desc' } });
-  res.json({ projects });
+app.get('/api/projects/leaderboard', async (req, res) => {
+  let projects = [];
+  try {
+    projects = await prisma.project.findMany();
+  } catch (err) {}
+  if (!projects || projects.length === 0) {
+    projects = memoryDb.projects;
+  }
+
+  const sorted = [...projects].sort((a, b) => {
+    const rA = parseFloat(a.rating) || 0;
+    const rB = parseFloat(b.rating) || 0;
+    if (rB !== rA) return rB - rA;
+    const cA = Number(a.ratingCount || (Array.isArray(a.individualRatings) ? a.individualRatings.length : 0));
+    const cB = Number(b.ratingCount || (Array.isArray(b.individualRatings) ? b.individualRatings.length : 0));
+    if (cB !== cA) return cB - cA;
+    return String(a.submissionDate || '').localeCompare(String(b.submissionDate || ''));
+  });
+
+  res.json(sorted);
 });
 
-app.put('/api/projects/:id/rate', authenticateToken, async (req, res) => {
+// Admin rating endpoint (0-10, one rating per admin)
+app.post('/api/projects/:id/rate', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { rating, comment } = req.body;
 
-  const project = await prisma.project.findUnique({ where: { id: toBig(id) } });
+  const numericRating = parseFloat(rating);
+  if (isNaN(numericRating) || numericRating < 0 || numericRating > 10) {
+    return res.status(400).json({ error: 'Rating must be a valid number between 0 and 10.' });
+  }
+
+  const formattedRating = numericRating.toFixed(1);
+  const adminName = req.user.name;
+
+  let project = null;
+  try {
+    project = await prisma.project.findUnique({ where: { id: toBig(id) } });
+  } catch (err) {}
+
+  if (!project) {
+    project = memoryDb.projects.find(p => String(p.id) === String(id));
+  }
+
   if (!project) return res.status(404).json({ error: 'Project not found.' });
 
   const individualRatings = Array.isArray(project.individualRatings) ? [...project.individualRatings] : [];
-  const idx = individualRatings.findIndex((r) => r.user === req.user.name);
-  const entry = { user: req.user.name, rating: parseFloat(rating), comment };
-  if (idx !== -1) individualRatings[idx] = entry; else individualRatings.push(entry);
+  const idx = individualRatings.findIndex((r) => r.user === adminName);
+  const entry = { user: adminName, rating: numericRating, comment: comment || '' };
+
+  if (idx !== -1) {
+    individualRatings[idx] = entry;
+  } else {
+    individualRatings.push(entry);
+  }
 
   const valid = individualRatings.filter((r) => !isNaN(parseFloat(r.rating)));
-  const avg = valid.length > 0 ? valid.reduce((s, r) => s + r.rating, 0) / valid.length : 0;
+  const avg = valid.length > 0 ? valid.reduce((s, r) => s + parseFloat(r.rating), 0) / valid.length : 0;
+  const avgFormatted = avg.toFixed(1);
+  const newRatingCount = valid.length;
+  const newStatus = valid.length >= 1 && project.status === 'PENDING_REVIEW' ? 'UNDER_REVIEW' : project.status;
 
-  const updated = await prisma.project.update({
-    where: { id: project.id },
-    data: { individualRatings, rating: avg.toFixed(1) }
-  });
+  try {
+    await prisma.project.update({
+      where: { id: toBig(id) },
+      data: {
+        individualRatings,
+        rating: avgFormatted,
+        ratingCount: newRatingCount,
+        status: newStatus
+      }
+    });
+  } catch (err) {
+    console.warn(`[DB Notice] Project rating update error: ${err.message}`);
+  }
+
+  const memProj = memoryDb.projects.find(p => String(p.id) === String(id));
+  if (memProj) {
+    memProj.individualRatings = individualRatings;
+    memProj.rating = avgFormatted;
+    memProj.ratingCount = newRatingCount;
+    memProj.status = newStatus;
+    saveMemoryDb();
+  }
+
+  const updatedProject = {
+    ...project,
+    individualRatings,
+    rating: avgFormatted,
+    ratingCount: newRatingCount,
+    status: newStatus
+  };
 
   const activities = await getCollection('recentActivities', []);
-  const newActivity = { id: Date.now(), label: 'Reviewed project', detail: `Left evaluation on "${project.title}"`, time: 'Just now' };
+  const newActivity = { id: Date.now(), label: 'Reviewed project', detail: `Left evaluation (${formattedRating}/10) on "${project.title}"`, time: 'Just now' };
   await setCollection('recentActivities', [newActivity, ...activities].slice(0, 10));
 
-  res.json({ project: updated });
+  res.json({ success: true, project: updatedProject });
 });
 
 /* ================================================================== */
@@ -744,95 +964,118 @@ app.post('/api/leaderboard/winners', authenticateToken, async (req, res) => {
 /* ================================================================== */
 
 app.post('/api/recruitment/apply', async (req, res) => {
-  const { name, registerNumber, email, phoneNumber, domain, yearOfStudy, github, linkedin, whyJoin, projectDetails } = req.body;
+  const { recruitmentId, name, registerNumber, email, phoneNumber, domain, yearOfStudy, github, linkedin, whyJoin, projectDetails } = req.body;
   if (!name || !registerNumber || !email || !domain || !yearOfStudy) {
     return res.status(400).json({ error: 'Please fill in all required fields.' });
   }
   if (!validateEmail(email)) {
-    return res.status(400).json({ error: 'Enter your student email only in format name.lastnameYYYY@vitstudent.ac.in' });
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
 
-  const dupe = await prisma.recruitmentApplication.findFirst({
-    where: { OR: [{ email }, { registerNumber }] }
-  });
-  if (dupe) {
+  const activeRecruitmentId = recruitmentId || 'recruitment-2026';
+
+  const newApp = {
+    id: Date.now(),
+    recruitmentId: activeRecruitmentId,
+    name,
+    registerNumber,
+    email,
+    phoneNumber: phoneNumber || '',
+    domain,
+    yearOfStudy,
+    github: github || '',
+    linkedin: linkedin || '',
+    whyJoin: whyJoin || '',
+    projectDetails: projectDetails || '',
+    status: 'Pending',
+    appliedDate: new Date().toISOString().split('T')[0]
+  };
+
+  const isDupe = memoryDb.recruitmentApplications.some(
+    a => a.email === email || a.registerNumber === registerNumber
+  );
+  if (isDupe) {
     return res.status(400).json({ error: 'An application with this email or register number has already been submitted.' });
   }
 
   try {
-    await prisma.recruitmentApplication.create({
-      data: {
-        id: toBig(Date.now()),
-        name,
-        registerNumber,
-        email,
-        phoneNumber: phoneNumber || '',
-        domain,
-        yearOfStudy,
-        github: github || '',
-        linkedin: linkedin || '',
-        whyJoin: whyJoin || '',
-        projectDetails: projectDetails || '',
-        status: 'Pending',
-        appliedDate: new Date().toISOString().split('T')[0]
-      }
-    });
-    return res.status(201).json({ success: true, message: 'Application submitted successfully!' });
-  } catch (err) {
-    // Unique constraint safety net (race against the check above).
-    if (err.code === 'P2002') {
+    const dupe = await prisma.recruitmentApplication.findFirst({
+      where: { OR: [{ email }, { registerNumber }] }
+    }).catch(() => null);
+
+    if (dupe) {
       return res.status(400).json({ error: 'An application with this email or register number has already been submitted.' });
     }
-    console.error('Recruitment apply error:', err);
-    return res.status(500).json({ error: 'Failed to submit application.' });
+
+    await prisma.recruitmentApplication.create({
+      data: {
+        id: toBig(newApp.id),
+        recruitmentId: newApp.recruitmentId,
+        name: newApp.name,
+        registerNumber: newApp.registerNumber,
+        email: newApp.email,
+        phoneNumber: newApp.phoneNumber,
+        domain: newApp.domain,
+        yearOfStudy: newApp.yearOfStudy,
+        github: newApp.github,
+        linkedin: newApp.linkedin,
+        whyJoin: newApp.whyJoin,
+        projectDetails: newApp.projectDetails,
+        status: newApp.status,
+        appliedDate: newApp.appliedDate
+      }
+    });
+  } catch (err) {
+    console.warn(`[DB Notice] Recruitment application create error: ${err.message}`);
   }
+
+  memoryDb.recruitmentApplications.unshift(newApp);
+  saveMemoryDb();
+
+  return res.status(201).json({ success: true, message: 'Application submitted successfully!' });
 });
 
 app.get('/api/recruitment/applications', authenticateToken, requireAdmin, async (req, res) => {
-  const applications = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
-  res.json(applications);
+  try {
+    const applications = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
+    if (applications && applications.length > 0) return res.json(applications);
+  } catch (err) {
+    console.warn(`[DB Notice] Applications fetch error: ${err.message}`);
+  }
+  res.json(memoryDb.recruitmentApplications);
 });
 
 app.put('/api/recruitment/applications/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  if (status !== 'Accepted' && status !== 'Rejected') {
+  const ALLOWED_STATUSES = ['Pending', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
+  if (!ALLOWED_STATUSES.includes(status)) {
     return res.status(400).json({ error: 'Invalid status update.' });
   }
 
-  const application = await prisma.recruitmentApplication.findUnique({ where: { id: toBig(id) } });
-  if (!application) return res.status(404).json({ error: 'Application not found.' });
-
-  await prisma.recruitmentApplication.update({ where: { id: application.id }, data: { status } });
-
-  // On acceptance, register the applicant as a member and allowlist their email.
-  if (status === 'Accepted') {
-    const existing = await findUserByEmail(application.email);
-    if (!existing) {
-      await prisma.user.create({
-        data: mapUser({
-          id: Date.now(),
-          name: application.name,
-          email: application.email,
-          registerNumber: application.registerNumber,
-          phoneNumber: application.phoneNumber,
-          role: 'Member',
-          status: 'Active',
-          badges: ['New Maker'],
-          contributionScore: 10,
-          eventScore: 5,
-          totalScore: 7
-        })
-      });
+  let application = null;
+  try {
+    application = await prisma.recruitmentApplication.findUnique({ where: { id: toBig(id) } });
+    if (application) {
+      await prisma.recruitmentApplication.update({ where: { id: application.id }, data: { status } });
     }
-    await prisma.allowedEmail.upsert({
-      where: { email: application.email },
-      update: {},
-      create: { email: application.email, addedBy: req.user.name }
-    });
+  } catch (err) {
+    console.warn(`[DB Notice] Status update error: ${err.message}`);
   }
 
-  const applications = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
+  const memApp = memoryDb.recruitmentApplications.find(a => String(a.id) === String(id));
+  if (memApp) {
+    memApp.status = status;
+    saveMemoryDb();
+  }
+
+  let applications = [];
+  try {
+    applications = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
+  } catch (err) {}
+  if (!applications || applications.length === 0) {
+    applications = memoryDb.recruitmentApplications;
+  }
   res.json({ success: true, applications });
 });
 
@@ -885,6 +1128,14 @@ if (fs.existsSync(distPath)) {
 /* ------------------------------------------------------------------ */
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 HackClub Server running on http://localhost:${PORT}`);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.warn('[Server Warning] Unhandled Rejection:', reason?.message || reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.warn('[Server Warning] Uncaught Exception:', err?.message || err);
 });

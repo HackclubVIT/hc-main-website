@@ -71,22 +71,7 @@ export const api = {
     });
   },
 
-  async sendOtp(email) {
-    return apiFetch('/auth/send-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
-  },
-
-  async loginOtp(email, otp, role) {
-    const data = await apiFetch('/auth/login-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email, otp, role }),
-    });
-    setToken(data.token);
-    return data;
-  },
-
+  // Forgot password — requests a 6-digit reset code sent to email
   async forgotPassword(email) {
     return apiFetch('/auth/forgot-password', {
       method: 'POST',
@@ -94,17 +79,19 @@ export const api = {
     });
   },
 
-  async verifyResetOtp(email, otp) {
-    return apiFetch('/auth/verify-reset-otp', {
+  // Verify reset code — validates the 6-digit code
+  async verifyResetCode(resetCode) {
+    return apiFetch('/auth/verify-reset-code', {
       method: 'POST',
-      body: JSON.stringify({ email, otp }),
+      body: JSON.stringify({ resetCode }),
     });
   },
 
-  async resetPassword(email, otp, newPassword) {
+  // Reset password — submits the new password with the 6-digit reset code
+  async resetPassword(resetCode, newPassword) {
     return apiFetch('/auth/reset-password', {
       method: 'POST',
-      body: JSON.stringify({ email, otp, newPassword }),
+      body: JSON.stringify({ resetCode, newPassword }),
     });
   },
 
@@ -132,9 +119,13 @@ export const api = {
 
   async rateProject(projectId, rating, comment) {
     return apiFetch(`/projects/${projectId}/rate`, {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({ rating, comment }),
     });
+  },
+
+  async getProjectLeaderboard() {
+    return apiFetch('/projects/leaderboard');
   },
 
   // Uploads

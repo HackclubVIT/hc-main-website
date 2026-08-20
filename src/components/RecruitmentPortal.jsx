@@ -56,6 +56,7 @@ export default function RecruitmentPortal({ onBack }) {
     setLoading(true);
     try {
       await api.submitRecruitmentApplication({
+        recruitmentId: 'recruitment-2026',
         ...formData,
         email: emailTrimmed,
         registerNumber: regTrimmed
