@@ -3,12 +3,12 @@
 // profile editor and the lead dashboards so the option lists never drift.
 
 export const HACKCLUB_DEPARTMENTS = [
-  'Projects',
-  'Finance',
-  'Design',
-  'Research and Development',
   'Operations',
   'Technical',
+  'Projects',
+  'Design & Social Media',
+  'Finance',
+  'Research & Development',
 ];
 
 // Roles that get the full Admin portal (same rights/dashboard as Admin).

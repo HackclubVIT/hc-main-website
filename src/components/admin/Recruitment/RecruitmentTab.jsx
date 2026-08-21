@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../../../api';
+import { HACKCLUB_DEPARTMENTS } from '../../../data/departments';
 
 export default function RecruitmentTab({ 
   applications = [], 
@@ -13,13 +14,33 @@ export default function RecruitmentTab({
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
+  useEffect(() => {
+    api.getRecruitmentApplications()
+      .then((apps) => {
+        if (Array.isArray(apps) && setApplications) {
+          setApplications(apps);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not refresh recruitment applications:', err);
+      });
+  }, [setApplications]);
+
   const filteredApplicants = applications.filter((app) => {
     const matchesSearch = 
-      app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      app.registerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.email.toLowerCase().includes(searchTerm.toLowerCase());
+      (app.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (app.registerNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.firstPreference || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.secondPreference || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.domain || '').toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesDomain = selectedDomain === 'All' || app.domain === selectedDomain;
+    const matchesDomain = 
+      selectedDomain === 'All' || 
+      app.firstPreference === selectedDomain || 
+      app.secondPreference === selectedDomain || 
+      app.domain === selectedDomain;
+
     const matchesStatus = selectedStatus === 'All' || app.status === selectedStatus;
     
     return matchesSearch && matchesDomain && matchesStatus;
@@ -49,6 +70,16 @@ export default function RecruitmentTab({
     }
   };
 
+  const handleClearAll = async () => {
+    if (!window.confirm('Are you sure you want to clear all recruitment applications?')) return;
+    try {
+      await api.clearAllRecruitmentApplications();
+      if (setApplications) setApplications([]);
+    } catch (err) {
+      window.alert(err.message || 'Failed to clear applications.');
+    }
+  };
+
   return (
     <section className="panel-section" style={{ animation: 'fadeIn 0.4s ease' }}>
       <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -56,6 +87,15 @@ export default function RecruitmentTab({
           <h2>Recruitment Applications</h2>
           <p className="subtitle">Review candidate profiles, filter by technical domains, and accept new makers into the club.</p>
         </div>
+        {applications.length > 0 && (
+          <button 
+            className="button button-outlined"
+            onClick={handleClearAll}
+            style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontSize: '0.85rem', padding: '8px 14px' }}
+          >
+            🗑️ Clear All Applications
+          </button>
+        )}
       </div>
 
       {/* Filter Toolbar */}
@@ -83,13 +123,10 @@ export default function RecruitmentTab({
               cursor: 'pointer'
             }}
           >
-            <option value="All">All Domains</option>
-            <option value="Web Development">Web Development</option>
-            <option value="Mobile App Development">Mobile App Development</option>
-            <option value="AI / Machine Learning">AI / Machine Learning</option>
-            <option value="Systems & IoT">Systems & IoT</option>
-            <option value="UI/UX Design">UI/UX Design</option>
-            <option value="Content & Social Media">Content & Social Media</option>
+            <option value="All">All Departments</option>
+            {HACKCLUB_DEPARTMENTS.map((dept) => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
           </select>
         </div>
 
@@ -131,8 +168,32 @@ export default function RecruitmentTab({
                 transition: 'transform 0.2s, border-color 0.2s'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                <span className="eyebrow" style={{ color: 'var(--orange)', fontFamily: 'monospace' }}>{app.domain}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <span style={{ 
+                    fontSize: '0.75rem', 
+                    padding: '2px 8px', 
+                    borderRadius: '4px', 
+                    backgroundColor: 'rgba(255,68,68,0.12)', 
+                    color: 'var(--orange)', 
+                    border: '1px solid rgba(255,68,68,0.25)',
+                    fontWeight: '600'
+                  }}>
+                    1st: {app.firstPreference || app.domain}
+                  </span>
+                  {app.secondPreference && app.secondPreference !== 'None' && (
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      padding: '2px 8px', 
+                      borderRadius: '4px', 
+                      backgroundColor: 'rgba(255,255,255,0.04)', 
+                      color: 'var(--text-muted)', 
+                      border: '1px solid rgba(255,255,255,0.08)' 
+                    }}>
+                      2nd: {app.secondPreference}
+                    </span>
+                  )}
+                </div>
                 <span style={{ 
                   fontSize: '0.8rem', 
                   padding: '3px 8px', 
@@ -174,7 +235,12 @@ export default function RecruitmentTab({
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '750px', width: '100%', padding: '32px', border: '1px solid rgba(255,68,68,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px', marginBottom: '24px' }}>
               <div>
-                <p className="eyebrow" style={{ color: 'var(--orange)', fontFamily: 'monospace' }}>{selectedApplicant.domain} Applicant</p>
+                <p className="eyebrow" style={{ color: 'var(--orange)', fontFamily: 'monospace', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span>1st Pref: <strong>{selectedApplicant.firstPreference || selectedApplicant.domain}</strong></span>
+                  {selectedApplicant.secondPreference && selectedApplicant.secondPreference !== 'None' && (
+                    <span>• 2nd Pref: <strong>{selectedApplicant.secondPreference}</strong></span>
+                  )}
+                </p>
                 <h2 style={{ fontSize: '1.8rem', marginTop: '6px' }}>{selectedApplicant.name}</h2>
                 <p style={{ color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '0.9rem', marginTop: '4px' }}>
                   {selectedApplicant.registerNumber} • {selectedApplicant.yearOfStudy} Year • Applied {selectedApplicant.appliedDate}
@@ -188,7 +254,8 @@ export default function RecruitmentTab({
               </button>
             </div>
 
-            <div className="two-col-grid" style={{ gap: '24px', marginBottom: '24px' }}>
+            {/* Contact & Links Grid */}
+            <div className="two-col-grid" style={{ gap: '24px', marginBottom: '20px' }}>
               <div style={{ display: 'grid', gap: '12px' }}>
                 <div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</span>
@@ -204,7 +271,7 @@ export default function RecruitmentTab({
                 {selectedApplicant.github && (
                   <div>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>GitHub</span>
-                    <a href={`https://${selectedApplicant.github}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.95rem', color: 'var(--highlight)', textDecoration: 'none' }}>
+                    <a href={selectedApplicant.github.startsWith('http') ? selectedApplicant.github : `https://${selectedApplicant.github}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.95rem', color: 'var(--highlight)', textDecoration: 'none' }}>
                       {selectedApplicant.github} ↗
                     </a>
                   </div>
@@ -212,7 +279,7 @@ export default function RecruitmentTab({
                 {selectedApplicant.linkedin && (
                   <div>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>LinkedIn</span>
-                    <a href={`https://${selectedApplicant.linkedin}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.95rem', color: 'var(--highlight)', textDecoration: 'none' }}>
+                    <a href={selectedApplicant.linkedin.startsWith('http') ? selectedApplicant.linkedin : `https://${selectedApplicant.linkedin}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.95rem', color: 'var(--highlight)', textDecoration: 'none' }}>
                       {selectedApplicant.linkedin} ↗
                     </a>
                   </div>
@@ -220,23 +287,77 @@ export default function RecruitmentTab({
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px', display: 'grid', gap: '20px', marginBottom: '32px' }}>
-              <div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Why join HackClub?</span>
-                <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--mute)', margin: 0 }}>
-                  {selectedApplicant.whyJoin}
+            {/* Department Motivation Section */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px', display: 'grid', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ background: 'rgba(255,68,68,0.03)', border: '1px solid rgba(255,68,68,0.1)', padding: '16px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--orange)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>
+                  🎯 1st Preference ({selectedApplicant.firstPreference || selectedApplicant.domain}):
+                </span>
+                <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text)', margin: 0 }}>
+                  {selectedApplicant.firstPrefReason || selectedApplicant.whyJoin || 'N/A'}
                 </p>
               </div>
 
-              {selectedApplicant.projectDetails && (
-                <div>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Project description / proposal</span>
+              {selectedApplicant.secondPreference && selectedApplicant.secondPreference !== 'None' && (
+                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', fontWeight: 'bold' }}>
+                    🎯 2nd Preference ({selectedApplicant.secondPreference}):
+                  </span>
                   <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--mute)', margin: 0 }}>
-                    {selectedApplicant.projectDetails}
+                    {selectedApplicant.secondPrefReason || 'No specific reason given.'}
                   </p>
                 </div>
               )}
             </div>
+
+            {/* Goals & Thinking Section */}
+            {(selectedApplicant.skillToLearn || selectedApplicant.whyHackclub || selectedApplicant.productiveWebsiteQuestions) && (
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px', display: 'grid', gap: '16px', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--orange)' }}>🧠 Goals & Thinking</h3>
+
+                {selectedApplicant.skillToLearn && (
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '14px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>
+                      🛠️ Skill wanted to learn & why:
+                    </span>
+                    <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text)', margin: 0 }}>
+                      {selectedApplicant.skillToLearn}
+                    </p>
+                  </div>
+                )}
+
+                {selectedApplicant.whyHackclub && (
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '14px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>
+                      ❓ Why HackClub:
+                    </span>
+                    <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text)', margin: 0 }}>
+                      {selectedApplicant.whyHackclub}
+                    </p>
+                  </div>
+                )}
+
+                {selectedApplicant.productiveWebsiteQuestions && (
+                  <div style={{ background: 'rgba(255,68,68,0.02)', border: '1px solid rgba(255,68,68,0.08)', padding: '14px', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--orange)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>
+                      💡 Scenario: Questions asked before building student productivity website:
+                    </span>
+                    <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text)', margin: 0 }}>
+                      {selectedApplicant.productiveWebsiteQuestions}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selectedApplicant.projectDetails && (
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px', display: 'grid', gap: '14px', marginBottom: '32px' }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Project Details</span>
+                  <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--mute)', margin: 0 }}>{selectedApplicant.projectDetails}</p>
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
               <button 

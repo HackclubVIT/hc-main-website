@@ -364,7 +364,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Signup — gated by the allowlist + email format.
-const HACKCLUB_DEPARTMENTS = ['Projects', 'Finance', 'Design', 'Research and Development', 'Operations', 'Technical'];
+const HACKCLUB_DEPARTMENTS = ['Operations', 'Technical', 'Projects', 'Design & Social Media', 'Finance', 'Research & Development'];
 
 app.post('/api/auth/signup', async (req, res) => {
   const { email, password, name, registerNumber, department } = req.body;
@@ -964,85 +964,139 @@ app.post('/api/leaderboard/winners', authenticateToken, async (req, res) => {
 /* ================================================================== */
 
 app.post('/api/recruitment/apply', async (req, res) => {
-  const { recruitmentId, name, registerNumber, email, phoneNumber, domain, yearOfStudy, github, linkedin, whyJoin, projectDetails } = req.body;
-  if (!name || !registerNumber || !email || !domain || !yearOfStudy) {
-    return res.status(400).json({ error: 'Please fill in all required fields.' });
-  }
-  if (!validateEmail(email)) {
-    return res.status(400).json({ error: 'Please enter a valid email address.' });
-  }
-
-  const activeRecruitmentId = recruitmentId || 'recruitment-2026';
-
-  const newApp = {
-    id: Date.now(),
-    recruitmentId: activeRecruitmentId,
-    name,
-    registerNumber,
-    email,
-    phoneNumber: phoneNumber || '',
-    domain,
-    yearOfStudy,
-    github: github || '',
-    linkedin: linkedin || '',
-    whyJoin: whyJoin || '',
-    projectDetails: projectDetails || '',
-    status: 'Pending',
-    appliedDate: new Date().toISOString().split('T')[0]
-  };
-
-  const isDupe = memoryDb.recruitmentApplications.some(
-    a => a.email === email || a.registerNumber === registerNumber
-  );
-  if (isDupe) {
-    return res.status(400).json({ error: 'An application with this email or register number has already been submitted.' });
-  }
-
   try {
-    const dupe = await prisma.recruitmentApplication.findFirst({
-      where: { OR: [{ email }, { registerNumber }] }
-    }).catch(() => null);
+    const {
+      recruitmentId,
+      name,
+      registerNumber,
+      email,
+      phoneNumber,
+      domain,
+      firstPreference,
+      secondPreference,
+      firstPrefReason,
+      secondPrefReason,
+      yearOfStudy,
+      technicalSkills,
+      skillLevel,
+      github,
+      linkedin,
+      portfolio,
+      sevenDaysBuild,
+      skillToLearn,
+      whyHackclub,
+      expectations,
+      productiveWebsiteQuestions,
+      threeDaysProjectTradeoffs,
+      anythingElse,
+      whyJoin,
+      projectDetails
+    } = req.body;
 
-    if (dupe) {
+    const resolvedFirstPref = firstPreference || domain || 'Operations';
+    const resolvedSecondPref = secondPreference || '';
+    const resolvedFirstReason = firstPrefReason || whyJoin || '';
+    const resolvedSecondReason = secondPrefReason || '';
+
+    if (!name || !registerNumber || !email || !resolvedFirstPref || !yearOfStudy || !resolvedFirstReason) {
+      return res.status(400).json({ error: 'Please fill in all required fields marked with *.' });
+    }
+    if (!validateEmail(email)) {
+      return res.status(400).json({ error: 'Please enter a valid student email ending with @vitstudent.ac.in' });
+    }
+
+    const activeRecruitmentId = recruitmentId || 'recruitment-2026';
+
+    const isDupe = (memoryDb.recruitmentApplications || []).some(
+      a => (a.email && a.email.toLowerCase() === email.toLowerCase()) || 
+           (a.registerNumber && a.registerNumber.toUpperCase() === registerNumber.toUpperCase())
+    );
+    if (isDupe) {
       return res.status(400).json({ error: 'An application with this email or register number has already been submitted.' });
     }
 
-    await prisma.recruitmentApplication.create({
-      data: {
-        id: toBig(newApp.id),
-        recruitmentId: newApp.recruitmentId,
-        name: newApp.name,
-        registerNumber: newApp.registerNumber,
-        email: newApp.email,
-        phoneNumber: newApp.phoneNumber,
-        domain: newApp.domain,
-        yearOfStudy: newApp.yearOfStudy,
-        github: newApp.github,
-        linkedin: newApp.linkedin,
-        whyJoin: newApp.whyJoin,
-        projectDetails: newApp.projectDetails,
-        status: newApp.status,
-        appliedDate: newApp.appliedDate
+    const newApp = {
+      id: Date.now(),
+      recruitmentId: activeRecruitmentId,
+      name,
+      registerNumber,
+      email,
+      phoneNumber: phoneNumber || '',
+      domain: resolvedFirstPref,
+      firstPreference: resolvedFirstPref,
+      secondPreference: resolvedSecondPref,
+      firstPrefReason: resolvedFirstReason,
+      secondPrefReason: resolvedSecondReason,
+      yearOfStudy,
+      technicalSkills: Array.isArray(technicalSkills) ? technicalSkills : (technicalSkills ? [technicalSkills] : []),
+      skillLevel: skillLevel || "Don't have any technical experience",
+      github: github || '',
+      linkedin: linkedin || '',
+      portfolio: portfolio || '',
+      sevenDaysBuild: sevenDaysBuild || '',
+      skillToLearn: skillToLearn || '',
+      whyHackclub: whyHackclub || resolvedFirstReason || '',
+      expectations: expectations || '',
+      productiveWebsiteQuestions: productiveWebsiteQuestions || '',
+      threeDaysProjectTradeoffs: threeDaysProjectTradeoffs || '',
+      anythingElse: anythingElse || '',
+      whyJoin: resolvedFirstReason,
+      projectDetails: projectDetails || sevenDaysBuild || '',
+      status: 'Pending',
+      appliedDate: new Date().toISOString().split('T')[0]
+    };
+
+    // Save to memoryDb first to guarantee application is stored safely!
+    memoryDb.recruitmentApplications.unshift(newApp);
+    saveMemoryDb();
+
+    // Safe background sync to Prisma DB if available
+    prisma.recruitmentApplication.findFirst({
+      where: { OR: [{ email }, { registerNumber }] }
+    }).then(async (dupe) => {
+      if (!dupe) {
+        await prisma.recruitmentApplication.create({
+          data: {
+            id: toBig(newApp.id),
+            recruitmentId: newApp.recruitmentId,
+            name: newApp.name,
+            registerNumber: newApp.registerNumber,
+            email: newApp.email,
+            phoneNumber: newApp.phoneNumber,
+            domain: newApp.domain,
+            yearOfStudy: newApp.yearOfStudy,
+            github: newApp.github,
+            linkedin: newApp.linkedin,
+            whyJoin: newApp.whyJoin,
+            projectDetails: newApp.projectDetails,
+            status: newApp.status,
+            appliedDate: newApp.appliedDate
+          }
+        }).catch(() => {});
       }
-    });
+    }).catch(() => {});
+
+    return res.status(201).json({ success: true, message: 'Application submitted successfully!' });
   } catch (err) {
-    console.warn(`[DB Notice] Recruitment application create error: ${err.message}`);
+    console.error('[Recruitment Error]', err);
+    return res.status(500).json({ error: 'Server error while submitting application. Please try again.' });
   }
-
-  memoryDb.recruitmentApplications.unshift(newApp);
-  saveMemoryDb();
-
-  return res.status(201).json({ success: true, message: 'Application submitted successfully!' });
 });
 
 app.get('/api/recruitment/applications', authenticateToken, requireAdmin, async (req, res) => {
+  let dbApps = [];
   try {
-    const applications = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
-    if (applications && applications.length > 0) return res.json(applications);
+    dbApps = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
   } catch (err) {
     console.warn(`[DB Notice] Applications fetch error: ${err.message}`);
   }
-  res.json(memoryDb.recruitmentApplications);
+
+  const map = new Map();
+  (memoryDb.recruitmentApplications || []).forEach(a => map.set(String(a.id), a));
+  dbApps.forEach(a => map.set(String(a.id), a));
+
+  const allApplications = Array.from(map.values()).sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+  res.json(allApplications);
 });
 
 app.put('/api/recruitment/applications/:id/status', authenticateToken, requireAdmin, async (req, res) => {
@@ -1077,6 +1131,17 @@ app.put('/api/recruitment/applications/:id/status', authenticateToken, requireAd
     applications = memoryDb.recruitmentApplications;
   }
   res.json({ success: true, applications });
+});
+
+app.delete('/api/recruitment/applications/all', authenticateToken, requireAdmin, async (req, res) => {
+  memoryDb.recruitmentApplications = [];
+  saveMemoryDb();
+  try {
+    await prisma.recruitmentApplication.deleteMany({});
+  } catch (err) {
+    console.warn('[DB Notice] Delete all applications error:', err.message);
+  }
+  res.json({ success: true, message: 'All recruitment applications cleared.' });
 });
 
 /* ================================================================== */

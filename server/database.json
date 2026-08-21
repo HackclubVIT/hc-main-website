@@ -524,37 +524,5 @@
       "value": "6"
     }
   ],
-  "recruitmentApplications": [
-    {
-      "id": 1787242662979,
-      "recruitmentId": "recruitment-2026",
-      "name": "prachi khandelwal",
-      "registerNumber": "24BPS1138",
-      "email": "prachikhandelwal2024@vitstudent.ac.in",
-      "phoneNumber": "7878148960",
-      "domain": "Web Development",
-      "yearOfStudy": "1st",
-      "github": "github.com/prachi101",
-      "linkedin": "prachi khandelwal",
-      "whyJoin": "............",
-      "projectDetails": ".............",
-      "status": "Pending",
-      "appliedDate": "2026-08-20"
-    },
-    {
-      "id": 1781614953204,
-      "name": "Ojas Singh",
-      "registerNumber": "24BCE5270",
-      "email": "ojas.singh2024@vitstudent.ac.in",
-      "phoneNumber": "+919324353240",
-      "domain": "Web Development",
-      "yearOfStudy": "1st",
-      "github": "",
-      "linkedin": "",
-      "whyJoin": "i love this club.",
-      "projectDetails": "many things",
-      "status": "Rejected",
-      "appliedDate": "2026-06-16"
-    }
-  ]
+  "recruitmentApplications": []
 }

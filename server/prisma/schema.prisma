@@ -81,20 +81,34 @@ model ProjectRating {
 // Recruitment form submissions. Unique email + register number guarantee one
 // application per person.
 model RecruitmentApplication {
-  id             BigInt  @id
-  recruitmentId  String  @default("recruitment-2026")
-  name           String
-  registerNumber String  @unique
-  email          String  @unique
-  phoneNumber    String?
-  domain         String
-  yearOfStudy    String
-  github         String?
-  linkedin       String?
-  whyJoin        String?
-  projectDetails String?
-  status         String  @default("Pending")
-  appliedDate    String?
+  id                         BigInt  @id
+  recruitmentId              String  @default("recruitment-2026")
+  name                       String
+  registerNumber             String  @unique
+  email                      String  @unique
+  phoneNumber                String?
+  domain                     String?
+  firstPreference            String?
+  secondPreference           String?
+  firstPrefReason            String?
+  secondPrefReason           String?
+  yearOfStudy                String
+  technicalSkills            Json?   @default("[]")
+  skillLevel                 String?
+  github                     String?
+  linkedin                   String?
+  portfolio                  String?
+  sevenDaysBuild             String?
+  skillToLearn               String?
+  whyHackclub                String?
+  expectations               String?
+  productiveWebsiteQuestions String?
+  threeDaysProjectTradeoffs  String?
+  anythingElse               String?
+  whyJoin                    String?
+  projectDetails             String?
+  status                     String  @default("Pending")
+  appliedDate                String?
 
   @@map("recruitment_applications")
 }

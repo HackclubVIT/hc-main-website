@@ -46,6 +46,9 @@ async function apiFetch(endpoint, options = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 502 || response.status === 503 || response.status === 504) {
+      throw new Error('Backend server is temporarily connecting or offline. Please make sure the backend server is running on port 5000.');
+    }
     throw new Error(data.error || `API Request failed with status ${response.status}`);
   }
 
@@ -196,6 +199,12 @@ export const api = {
     return apiFetch(`/recruitment/applications/${applicationId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
+    });
+  },
+
+  async clearAllRecruitmentApplications() {
+    return apiFetch('/recruitment/applications/all', {
+      method: 'DELETE',
     });
   },
 
