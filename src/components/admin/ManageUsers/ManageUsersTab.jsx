@@ -347,7 +347,7 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
         </div>
       </div>
       
-      <div className="table-card" style={{ overflow: 'visible' }}>
+      <div className="table-card">
         <div className="table-row table-head" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.2fr 1.2fr 1fr 1fr 200px 150px', gap: '16px' }}>
           <div>Name</div>
           <div>Role</div>
@@ -357,7 +357,7 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
           <div>Badges</div>
           <div>Actions</div>
         </div>
-        {filteredUsers.map((user) => (
+        {filteredUsers.map((user, index) => (
           <div key={user.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.2fr 1.2fr 1fr 1fr 200px 150px', gap: '16px', alignItems: 'center', position: 'relative', zIndex: openBadgeDropdownId === user.id ? 10 : 1 }}>
             <div 
               style={{ cursor: 'pointer', color: '#ffffff', fontWeight: 'bold' }}
@@ -426,7 +426,9 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
                 <span style={{ fontSize: '0.7rem' }}>▼</span>
               </button>
               {openBadgeDropdownId === user.id && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, paddingTop: '4px', zIndex: 9999 }}>
+                <div style={index >= filteredUsers.length - 2
+                  ? { position: 'absolute', bottom: '100%', left: 0, right: 0, paddingBottom: '4px', zIndex: 9999 }
+                  : { position: 'absolute', top: '100%', left: 0, right: 0, paddingTop: '4px', zIndex: 9999 }}>
                   <div 
                     style={{
                       background: '#1a1a1a',

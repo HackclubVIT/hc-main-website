@@ -519,14 +519,20 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
   const { email } = record;
   const user = await findUserByEmail(email);
-  if (user) {
-    try {
-      await prisma.user.update({ where: { id: user.id }, data: { password: newPassword } });
-      console.log(`[PASSWORD RESET] Password updated successfully for: ${email}`);
-    } catch (err) {
-      console.warn(`[DB Notice] Password update for ${email}: ${err.message}`);
-      // Continue — in-memory fallback if DB is unavailable
-    }
+  if (!user) {
+    console.error(`[PASSWORD RESET] No account found for ${email} — password NOT updated.`);
+    return res.status(500).json({
+      error: "We couldn't update your password right now. Please try again later or contact an admin."
+    });
+  }
+  try {
+    await prisma.user.update({ where: { id: user.id }, data: { password: newPassword } });
+    console.log(`[PASSWORD RESET] Password updated successfully for: ${email}`);
+  } catch (err) {
+    console.error(`[PASSWORD RESET] Password update failed for ${email}: ${err.message}`);
+    return res.status(500).json({
+      error: "We couldn't update your password right now. Please try again later or contact an admin."
+    });
   }
 
   // Mark code as used (single-use)
