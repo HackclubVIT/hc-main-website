@@ -622,9 +622,9 @@ app.get('/api/data', authenticateToken, async (req, res) => {
   ];
 
   res.json({
-    users: stripPasswords(users),
+    users: stripPasswords(users.length > 0 ? users : (Array.isArray(memoryDb.users) ? memoryDb.users : [])),
     projects: projects.length > 0 ? projects : memoryDb.projects,
-    recruitmentApplications: recruitmentApplications.length > 0 ? recruitmentApplications : memoryDb.recruitmentApplications,
+    recruitmentApplications: recruitmentApplications,
     allowedEmails,
     ...collections,
     profile,
@@ -1107,19 +1107,13 @@ app.post('/api/recruitment/apply', async (req, res) => {
 });
 
 app.get('/api/recruitment/applications', authenticateToken, requireAdmin, async (req, res) => {
-  let dbApps = [];
   try {
-    dbApps = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
+    const dbApps = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
+    return res.json(dbApps);
   } catch (err) {
     console.warn(`[DB Notice] Applications fetch error: ${err.message}`);
+    return res.json(memoryDb.recruitmentApplications || []);
   }
-
-  const map = new Map();
-  (memoryDb.recruitmentApplications || []).forEach(a => map.set(String(a.id), a));
-  dbApps.forEach(a => map.set(String(a.id), a));
-
-  const allApplications = Array.from(map.values()).sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-  res.json(allApplications);
 });
 
 app.put('/api/recruitment/applications/:id/status', authenticateToken, requireAdmin, async (req, res) => {
