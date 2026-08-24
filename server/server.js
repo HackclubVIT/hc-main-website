@@ -624,7 +624,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
   res.json({
     users: stripPasswords(users.length > 0 ? users : (Array.isArray(memoryDb.users) ? memoryDb.users : [])),
     projects: projects.length > 0 ? projects : memoryDb.projects,
-    recruitmentApplications: recruitmentApplications,
+    recruitmentApplications: (recruitmentApplications || []).filter(a => !['24BPS1029', '24BYB1097', '24BCE9999'].includes(a.registerNumber)),
     allowedEmails,
     ...collections,
     profile,
@@ -1106,13 +1106,17 @@ app.post('/api/recruitment/apply', async (req, res) => {
   }
 });
 
+const TEST_RECRUITMENT_REGS = new Set(['24BPS1029', '24BYB1097', '24BCE9999']);
+
 app.get('/api/recruitment/applications', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const dbApps = await prisma.recruitmentApplication.findMany({ orderBy: { id: 'desc' } });
-    return res.json(dbApps);
+    const cleanApps = dbApps.filter(a => !TEST_RECRUITMENT_REGS.has(a.registerNumber));
+    return res.json(cleanApps);
   } catch (err) {
     console.warn(`[DB Notice] Applications fetch error: ${err.message}`);
-    return res.json(memoryDb.recruitmentApplications || []);
+    const memApps = (memoryDb.recruitmentApplications || []).filter(a => !TEST_RECRUITMENT_REGS.has(a.registerNumber));
+    return res.json(memApps);
   }
 });
 

@@ -33,6 +33,16 @@ export default function RecruitmentTab({
   }, []);
 
   const filteredApplicants = applications.filter((app) => {
+    // Exclude test records
+    const isTest = 
+      app.registerNumber === '24BPS1029' || 
+      app.registerNumber === '24BYB1097' || 
+      app.registerNumber === '24BCE9999' ||
+      app.name === 'Armaan sangwan' ||
+      app.name === 'Ivan George' ||
+      app.name === 'Prachi khandelwal';
+    if (isTest) return false;
+
     const matchesSearch = 
       (app.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
       (app.registerNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
