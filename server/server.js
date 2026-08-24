@@ -1156,6 +1156,20 @@ app.put('/api/recruitment/applications/:id/status', authenticateToken, requireAd
   res.json({ success: true, applications });
 });
 
+app.delete('/api/recruitment/applications/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  memoryDb.recruitmentApplications = (memoryDb.recruitmentApplications || []).filter(a => String(a.id) !== String(id));
+  saveMemoryDb();
+  try {
+    await prisma.recruitmentApplication.delete({
+      where: { id: toBig(id) }
+    });
+  } catch (err) {
+    console.warn(`[DB Notice] Delete application ${id} error:`, err.message);
+  }
+  res.json({ success: true, message: 'Application deleted successfully.' });
+});
+
 app.delete('/api/recruitment/applications/all', authenticateToken, requireAdmin, async (req, res) => {
   memoryDb.recruitmentApplications = [];
   saveMemoryDb();

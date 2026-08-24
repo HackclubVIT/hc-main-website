@@ -70,6 +70,19 @@ export default function RecruitmentTab({
     }
   };
 
+  const handleDeleteApplicant = async (appId) => {
+    if (!window.confirm('Are you sure you want to delete this applicant?')) return;
+    try {
+      await api.deleteRecruitmentApplication(appId);
+      setApplications(prev => prev.filter(a => a.id !== appId));
+      if (selectedApplicant && selectedApplicant.id === appId) {
+        setSelectedApplicant(null);
+      }
+    } catch (err) {
+      window.alert(err.message || 'Failed to delete application.');
+    }
+  };
+
   const handleClearAll = async () => {
     if (!window.confirm('Are you sure you want to clear all recruitment applications?')) return;
     try {
@@ -369,6 +382,22 @@ export default function RecruitmentTab({
               </button>
               
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button 
+                  className="button button-outlined"
+                  onClick={() => handleDeleteApplicant(selectedApplicant.id)}
+                  style={{ borderColor: 'var(--danger)', color: 'var(--danger)', marginRight: 'auto' }}
+                >
+                  🗑️ Delete Application
+                </button>
+                {selectedApplicant.status !== 'Pending' && (
+                  <button 
+                    className="button button-secondary"
+                    disabled={updatingId !== null}
+                    onClick={() => handleUpdateStatus(selectedApplicant.id, 'Pending')}
+                  >
+                    Reset to Pending
+                  </button>
+                )}
                 {selectedApplicant.status !== 'Under Review' && (
                   <button 
                     className="button button-secondary"

@@ -202,6 +202,12 @@ export const api = {
     });
   },
 
+  async deleteRecruitmentApplication(applicationId) {
+    return apiFetch(`/recruitment/applications/${applicationId}`, {
+      method: 'DELETE',
+    });
+  },
+
   async clearAllRecruitmentApplications() {
     return apiFetch('/recruitment/applications/all', {
       method: 'DELETE',
