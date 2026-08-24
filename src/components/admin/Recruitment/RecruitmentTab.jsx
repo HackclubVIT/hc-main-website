@@ -12,19 +12,25 @@ export default function RecruitmentTab({
   const [selectedDomain, setSelectedDomain] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedApplicant, setSelectedApplicant] = useState(null);
-  const [updatingId, setUpdatingId] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshApplications = async () => {
+    setIsRefreshing(true);
+    try {
+      const apps = await api.getRecruitmentApplications();
+      if (Array.isArray(apps) && setApplications) {
+        setApplications(apps);
+      }
+    } catch (err) {
+      console.warn('Could not refresh recruitment applications:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    api.getRecruitmentApplications()
-      .then((apps) => {
-        if (Array.isArray(apps) && setApplications) {
-          setApplications(apps);
-        }
-      })
-      .catch((err) => {
-        console.warn('Could not refresh recruitment applications:', err);
-      });
-  }, [setApplications]);
+    refreshApplications();
+  }, []);
 
   const filteredApplicants = applications.filter((app) => {
     const matchesSearch = 
@@ -100,15 +106,25 @@ export default function RecruitmentTab({
           <h2>Recruitment Applications</h2>
           <p className="subtitle">Review candidate profiles, filter by technical domains, and accept new makers into the club.</p>
         </div>
-        {applications.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button 
             className="button button-outlined"
-            onClick={handleClearAll}
-            style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontSize: '0.85rem', padding: '8px 14px' }}
+            onClick={refreshApplications}
+            disabled={isRefreshing}
+            style={{ fontSize: '0.85rem', padding: '8px 14px' }}
           >
-            🗑️ Clear All Applications
+            {isRefreshing ? '⏳ Refreshing...' : '🔄 Refresh List'}
           </button>
-        )}
+          {applications.length > 0 && (
+            <button 
+              className="button button-outlined"
+              onClick={handleClearAll}
+              style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontSize: '0.85rem', padding: '8px 14px' }}
+            >
+              🗑️ Clear All
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -207,16 +223,37 @@ export default function RecruitmentTab({
                     </span>
                   )}
                 </div>
-                <span style={{ 
-                  fontSize: '0.8rem', 
-                  padding: '3px 8px', 
-                  borderRadius: '4px', 
-                  backgroundColor: app.status === 'Accepted' ? 'rgba(46,125,50,0.15)' : app.status === 'Rejected' ? 'rgba(172,18,12,0.15)' : 'rgba(208,125,34,0.15)',
-                  color: app.status === 'Accepted' ? '#81c784' : app.status === 'Rejected' ? '#e57373' : '#ffb74d',
-                  border: `1px solid ${app.status === 'Accepted' ? 'var(--success)' : app.status === 'Rejected' ? 'var(--danger)' : 'var(--amber)'}`
-                }}>
-                  {app.status}
-                </span>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ 
+                    fontSize: '0.8rem', 
+                    padding: '3px 8px', 
+                    borderRadius: '4px', 
+                    backgroundColor: app.status === 'Accepted' ? 'rgba(46,125,50,0.15)' : app.status === 'Rejected' ? 'rgba(172,18,12,0.15)' : 'rgba(208,125,34,0.15)',
+                    color: app.status === 'Accepted' ? '#81c784' : app.status === 'Rejected' ? '#e57373' : '#ffb74d',
+                    border: `1px solid ${app.status === 'Accepted' ? 'var(--success)' : app.status === 'Rejected' ? 'var(--danger)' : 'var(--amber)'}`
+                  }}>
+                    {app.status}
+                  </span>
+                  <button
+                    title="Delete applicant"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteApplicant(app.id);
+                    }}
+                    style={{
+                      background: 'rgba(255,68,68,0.1)',
+                      border: '1px solid rgba(255,68,68,0.3)',
+                      color: 'var(--danger)',
+                      cursor: 'pointer',
+                      padding: '3px 8px',
+                      fontSize: '0.8rem',
+                      borderRadius: '4px',
+                      transition: 'background 0.2s'
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
               <h3 style={{ margin: '0 0 6px 0', fontSize: '1.25rem' }}>{app.name}</h3>
               <p style={{ margin: '0 0 16px 0', color: 'var(--text-muted)', fontSize: '0.9rem', fontFamily: 'monospace' }}>
