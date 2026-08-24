@@ -12,6 +12,7 @@ export default function RecruitmentTab({
   const [selectedDomain, setSelectedDomain] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const refreshApplications = async () => {
