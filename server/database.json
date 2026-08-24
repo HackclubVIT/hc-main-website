@@ -524,5 +524,69 @@
       "value": "6"
     }
   ],
-  "recruitmentApplications": []
+  "recruitmentApplications": [
+    {
+      "id": 1787249000001,
+      "recruitmentId": "recruitment-2026",
+      "name": "Aarav Sharma",
+      "registerNumber": "24BCE1001",
+      "email": "aarav.sharma2024@vitstudent.ac.in",
+      "phoneNumber": "+91 9876543210",
+      "domain": "Web Development",
+      "firstPreference": "Web Development",
+      "secondPreference": "Design",
+      "yearOfStudy": "2nd Year",
+      "technicalSkills": ["React", "Node.js", "TypeScript", "Tailwind CSS"],
+      "skillLevel": "Intermediate",
+      "github": "https://github.com/aaravsharma",
+      "linkedin": "https://linkedin.com/in/aaravsharma",
+      "portfolio": "https://aarav.dev",
+      "whyJoin": "Enthusiastic about open-source projects, community hackathons, and building web apps.",
+      "projectDetails": "Built a campus room-booking app using React and Node.js with real-time socket updates.",
+      "status": "Pending",
+      "appliedDate": "2026-08-22"
+    },
+    {
+      "id": 1787249000002,
+      "recruitmentId": "recruitment-2026",
+      "name": "Diya Patel",
+      "registerNumber": "24BCE1045",
+      "email": "diya.patel2024@vitstudent.ac.in",
+      "phoneNumber": "+91 9812345678",
+      "domain": "AI & Machine Learning",
+      "firstPreference": "AI & Machine Learning",
+      "secondPreference": "Web Development",
+      "yearOfStudy": "2nd Year",
+      "technicalSkills": ["Python", "PyTorch", "OpenCV", "Scikit-Learn"],
+      "skillLevel": "Advanced",
+      "github": "https://github.com/diyapatel",
+      "linkedin": "https://linkedin.com/in/diyapatel",
+      "portfolio": "https://diya.ai",
+      "whyJoin": "Want to collaborate on machine learning projects and mentor junior members in AI.",
+      "projectDetails": "Trained an image segmentation model for plant disease detection with 94% accuracy.",
+      "status": "Under Review",
+      "appliedDate": "2026-08-21"
+    },
+    {
+      "id": 1787249000003,
+      "recruitmentId": "recruitment-2026",
+      "name": "Rohan Gupta",
+      "registerNumber": "24BCE1089",
+      "email": "rohan.gupta2024@vitstudent.ac.in",
+      "phoneNumber": "+91 9765432109",
+      "domain": "App Development",
+      "firstPreference": "App Development",
+      "secondPreference": "Systems & IoT",
+      "yearOfStudy": "1st Year",
+      "technicalSkills": ["Flutter", "Dart", "Firebase"],
+      "skillLevel": "Intermediate",
+      "github": "https://github.com/rohangupta",
+      "linkedin": "https://linkedin.com/in/rohangupta",
+      "portfolio": "",
+      "whyJoin": "Excited to learn from senior hackclub developers and participate in national hackathons.",
+      "projectDetails": "Created a cross-platform Flutter app for managing personal budgets with offline storage.",
+      "status": "Shortlisted",
+      "appliedDate": "2026-08-20"
+    }
+  ]
 }

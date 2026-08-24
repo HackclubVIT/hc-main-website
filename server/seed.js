@@ -80,12 +80,16 @@ async function main() {
 
   // ---- Users (existing + demo) ----
   const rawUsers = Array.isArray(json.users) ? json.users : [];
-  const usersById = new Map();
+  const usersByEmail = new Map();
   for (const u of [...rawUsers, ...DEMO_USERS]) {
     const mapped = mapUser(u);
-    usersById.set(mapped.id.toString(), mapped);
+    if (mapped.email) {
+      usersByEmail.set(mapped.email.toLowerCase(), mapped);
+    } else {
+      usersByEmail.set(`no-email-${mapped.id}`, mapped);
+    }
   }
-  const users = [...usersById.values()];
+  const users = [...usersByEmail.values()];
 
   // Ensure every emailed user is on the allowlist + demo accounts.
   const allowlistEmails = new Set();

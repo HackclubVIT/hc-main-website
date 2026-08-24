@@ -1056,10 +1056,11 @@ app.post('/api/recruitment/apply', async (req, res) => {
     memoryDb.recruitmentApplications.unshift(newApp);
     saveMemoryDb();
 
-    // Safe background sync to Prisma DB if available
-    prisma.recruitmentApplication.findFirst({
-      where: { OR: [{ email }, { registerNumber }] }
-    }).then(async (dupe) => {
+    // Save directly to Prisma DB
+    try {
+      const dupe = await prisma.recruitmentApplication.findFirst({
+        where: { OR: [{ email: newApp.email }, { registerNumber: newApp.registerNumber }] }
+      });
       if (!dupe) {
         await prisma.recruitmentApplication.create({
           data: {
@@ -1070,17 +1071,33 @@ app.post('/api/recruitment/apply', async (req, res) => {
             email: newApp.email,
             phoneNumber: newApp.phoneNumber,
             domain: newApp.domain,
+            firstPreference: newApp.firstPreference,
+            secondPreference: newApp.secondPreference,
+            firstPrefReason: newApp.firstPrefReason,
+            secondPrefReason: newApp.secondPrefReason,
             yearOfStudy: newApp.yearOfStudy,
+            technicalSkills: newApp.technicalSkills || [],
+            skillLevel: newApp.skillLevel,
             github: newApp.github,
             linkedin: newApp.linkedin,
+            portfolio: newApp.portfolio,
+            sevenDaysBuild: newApp.sevenDaysBuild,
+            skillToLearn: newApp.skillToLearn,
+            whyHackclub: newApp.whyHackclub,
+            expectations: newApp.expectations,
+            productiveWebsiteQuestions: newApp.productiveWebsiteQuestions,
+            threeDaysProjectTradeoffs: newApp.threeDaysProjectTradeoffs,
+            anythingElse: newApp.anythingElse,
             whyJoin: newApp.whyJoin,
             projectDetails: newApp.projectDetails,
             status: newApp.status,
             appliedDate: newApp.appliedDate
           }
-        }).catch(() => {});
+        });
       }
-    }).catch(() => {});
+    } catch (dbErr) {
+      console.error('[Recruitment Prisma DB Error]', dbErr.message);
+    }
 
     return res.status(201).json({ success: true, message: 'Application submitted successfully!' });
   } catch (err) {
