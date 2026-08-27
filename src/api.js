@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 export function setToken(token) {
   if (token) {
@@ -195,10 +195,21 @@ export const api = {
     return apiFetch('/recruitment/applications');
   },
 
+  async getRecruitmentStats() {
+    return apiFetch('/recruitment/stats');
+  },
+
   async updateRecruitmentApplicationStatus(applicationId, status) {
     return apiFetch(`/recruitment/applications/${applicationId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
+    });
+  },
+
+  async batchUpdateRecruitmentStatus(ids, status) {
+    return apiFetch('/recruitment/applications/batch-status', {
+      method: 'POST',
+      body: JSON.stringify({ ids, status }),
     });
   },
 
@@ -211,6 +222,13 @@ export const api = {
   async clearAllRecruitmentApplications() {
     return apiFetch('/recruitment/applications/all', {
       method: 'DELETE',
+    });
+  },
+
+  async toggleRecruitmentPermission(userId, isRecruitmentAdmin) {
+    return apiFetch(`/users/${userId}/recruitment-permission`, {
+      method: 'PUT',
+      body: JSON.stringify({ isRecruitmentAdmin }),
     });
   },
 
@@ -231,4 +249,53 @@ export const api = {
       method: 'DELETE',
     });
   },
+
+  // Collection wholesale synchronization (Admin)
+  async syncUsers(users) {
+    return apiFetch('/users', { method: 'PUT', body: JSON.stringify(users) });
+  },
+
+  async syncAnnouncements(announcements) {
+    return apiFetch('/announcements', { method: 'PUT', body: JSON.stringify(announcements) });
+  },
+
+  async syncProjects(projects) {
+    return apiFetch('/projects', { method: 'PUT', body: JSON.stringify(projects) });
+  },
+
+  async syncUploads(uploads) {
+    return apiFetch('/uploads', { method: 'PUT', body: JSON.stringify(uploads) });
+  },
+
+  async syncEvents(events) {
+    return apiFetch('/events', { method: 'PUT', body: JSON.stringify(events) });
+  },
+
+  async syncActivities(activities) {
+    return apiFetch('/activities', { method: 'PUT', body: JSON.stringify(activities) });
+  },
+
+  async syncFeedbacks(feedbacks) {
+    return apiFetch('/feedbacks', { method: 'PUT', body: JSON.stringify(feedbacks) });
+  },
+
+  async syncSystemStatus(systemStatus) {
+    return apiFetch('/system-status', { method: 'PUT', body: JSON.stringify(systemStatus) });
+  },
+
+  async syncWeeklyWinners(weeklyWinners) {
+    return apiFetch('/weekly-winners', { method: 'PUT', body: JSON.stringify(weeklyWinners) });
+  },
+
+  async syncMonthlyWinners(monthlyWinners) {
+    return apiFetch('/monthly-winners', { method: 'PUT', body: JSON.stringify(monthlyWinners) });
+  },
+
+  async syncTeamUpdates(teamUpdates) {
+    return apiFetch('/team-updates', { method: 'PUT', body: JSON.stringify(teamUpdates) });
+  },
+
+  async syncContributions(contributions) {
+    return apiFetch('/contributions', { method: 'PUT', body: JSON.stringify(contributions) });
+  }
 };

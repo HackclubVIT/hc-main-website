@@ -98,11 +98,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalAnnouncements) : updater
     setGlobalAnnouncements(next)
     try {
-      await fetch('/api/announcements', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncAnnouncements(next)
     } catch (e) {
       console.error('Error saving announcements:', e)
     }
@@ -112,11 +108,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalUsers) : updater
     setGlobalUsers(next)
     try {
-      await fetch('/api/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncUsers(next)
     } catch (e) {
       console.error('Error saving users:', e)
     }
@@ -126,11 +118,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalProjects) : updater
     setGlobalProjects(next)
     try {
-      await fetch('/api/projects', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncProjects(next)
     } catch (e) {
       console.error('Error saving projects:', e)
     }
@@ -140,11 +128,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalUploads) : updater
     setGlobalUploads(next)
     try {
-      await fetch('/api/uploads', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncUploads(next)
     } catch (e) {
       console.error('Error saving uploads:', e)
     }
@@ -154,11 +138,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalActivities) : updater
     setGlobalActivities(next)
     try {
-      await fetch('/api/activities', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncActivities(next)
     } catch (e) {
       console.error('Error saving activities:', e)
     }
@@ -168,11 +148,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalEvents) : updater
     setGlobalEvents(next)
     try {
-      await fetch('/api/events', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncEvents(next)
     } catch (e) {
       console.error('Error saving events:', e)
     }
@@ -183,11 +159,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalFeedbacks) : updater
     setGlobalFeedbacks(next)
     try {
-      await fetch('/api/feedbacks', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncFeedbacks(next)
     } catch (e) {
       console.error('Error saving feedbacks:', e)
     }
@@ -197,7 +169,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalProfile) : updater
     setGlobalProfile(next)
     try {
-      await fetch('/api/profile', {
+      await fetch(`${(import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify(next)
@@ -211,11 +183,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalContributions) : updater
     setGlobalContributions(next)
     try {
-      await fetch('/api/contributions', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncContributions(next)
     } catch (e) {
       console.error('Error saving contributions:', e)
     }
@@ -225,11 +193,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalSystemStatus) : updater
     setGlobalSystemStatus(next)
     try {
-      await fetch('/api/system-status', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncSystemStatus(next)
     } catch (e) {
       console.error('Error saving system status:', e)
     }
@@ -239,11 +203,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalWeeklyWinners) : updater
     setGlobalWeeklyWinners(next)
     try {
-      await fetch('/api/weekly-winners', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncWeeklyWinners(next)
     } catch (e) {
       console.error('Error saving weekly winners:', e)
     }
@@ -253,11 +213,7 @@ function App() {
     const next = typeof updater === 'function' ? updater(globalMonthlyWinners) : updater
     setGlobalMonthlyWinners(next)
     try {
-      await fetch('/api/monthly-winners', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(next)
-      })
+      await api.syncMonthlyWinners(next)
     } catch (e) {
       console.error('Error saving monthly winners:', e)
     }

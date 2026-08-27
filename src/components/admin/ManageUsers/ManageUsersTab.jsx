@@ -22,6 +22,22 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
     setUsers(users.map(u => u.id === id ? { ...u, isReviewer: !currentStatus } : u));
   };
 
+  const toggleRecruitmentAdmin = async (id, currentStatus) => {
+    const nextStatus = !currentStatus;
+    setUsers(users.map(u => u.id === id ? { 
+      ...u, 
+      isRecruitmentAdmin: nextStatus,
+      permissions: nextStatus 
+        ? Array.from(new Set([...(u.permissions || []), 'recruitment-admin']))
+        : (u.permissions || []).filter(p => p !== 'recruitment-admin')
+    } : u));
+    try {
+      await api.toggleRecruitmentPermission(id, nextStatus);
+    } catch (err) {
+      console.warn('Could not persist recruitment permission update:', err);
+    }
+  };
+
   // Changing role to a "<Dept> Lead" also pins their department to that team so
   // the lead and member team views stay in sync.
   const changeRole = (id, role) => {
@@ -472,14 +488,22 @@ export default function AdminManageUsers({ users, setUsers, activities, projects
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button 
                 className="button button-outlined" 
-                style={{ padding: '6px 12px', fontSize: '0.8rem', flex: 1 }}
-                onClick={() => toggleReviewer(user.id, user.isReviewer)}
+                style={{ padding: '6px 10px', fontSize: '0.75rem', flex: 1, borderColor: user.isRecruitmentAdmin ? 'var(--orange)' : undefined, color: user.isRecruitmentAdmin ? 'var(--orange)' : undefined }}
+                onClick={() => toggleRecruitmentAdmin(user.id, user.isRecruitmentAdmin)}
+                title="Toggle permission to view and monitor the recruitment platform"
               >
-                {user.isReviewer ? 'Demote' : 'Promote'}
+                {user.isRecruitmentAdmin ? '★ Recruit Admin' : '+ Recruit Access'}
               </button>
               <button 
                 className="button button-outlined" 
-                style={{ padding: '6px 12px', fontSize: '0.8rem', color: '#ff5555', borderColor: '#ff5555', flex: 1 }} 
+                style={{ padding: '6px 10px', fontSize: '0.75rem', flex: 1 }}
+                onClick={() => toggleReviewer(user.id, user.isReviewer)}
+              >
+                {user.isReviewer ? 'Demote Reviewer' : 'Promote Reviewer'}
+              </button>
+              <button 
+                className="button button-outlined" 
+                style={{ padding: '6px 10px', fontSize: '0.75rem', color: '#ff5555', borderColor: '#ff5555' }} 
                 onClick={() => removeUser(user.id)}
               >
                 Remove

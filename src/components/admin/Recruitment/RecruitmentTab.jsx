@@ -14,6 +14,8 @@ export default function RecruitmentTab({
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBatchUpdating, setIsBatchUpdating] = useState(false);
 
   const refreshApplications = async () => {
     setIsRefreshing(true);
@@ -63,19 +65,103 @@ export default function RecruitmentTab({
     return matchesSearch && matchesDomain && matchesStatus;
   });
 
+  const handleToggleSelect = (id, e) => {
+    e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === filteredApplicants.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredApplicants.map(a => a.id));
+    }
+  };
+
+  const handleBatchStatus = async (newStatus) => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to change ${selectedIds.length} candidate(s) to "${newStatus}"?`)) return;
+
+    setIsBatchUpdating(true);
+    try {
+      await api.batchUpdateRecruitmentStatus(selectedIds, newStatus);
+      setApplications(prev => prev.map(a => selectedIds.includes(a.id) ? { ...a, status: newStatus } : a));
+      
+      if (newStatus === 'Accepted') {
+        const syncData = await api.getData();
+        if (syncData.users) setUsers(syncData.users);
+      }
+
+      setSelectedIds([]);
+      window.alert(`Successfully updated ${selectedIds.length} candidate(s) to "${newStatus}".`);
+    } catch (err) {
+      window.alert(err.message || 'Failed to update batch status.');
+    } finally {
+      setIsBatchUpdating(false);
+    }
+  };
+
+  const handleExportCsv = () => {
+    if (filteredApplicants.length === 0) {
+      window.alert('No applicants to export.');
+      return;
+    }
+
+    const headers = [
+      'Name', 'Register Number', 'Email', 'Phone', '1st Preference', 'Why 1st Preference',
+      '2nd Preference', 'Why 2nd Preference', 'Year', 'Status', 'GitHub', 'LinkedIn',
+      'Portfolio', '7-Day Build', 'Skill to Learn', 'Why HackClub', 'Applied Date'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = filteredApplicants.map(a => [
+      escapeCsv(a.name),
+      escapeCsv(a.registerNumber),
+      escapeCsv(a.email),
+      escapeCsv(a.phoneNumber),
+      escapeCsv(a.firstPreference || a.domain),
+      escapeCsv(a.firstPrefReason || a.whyJoin),
+      escapeCsv(a.secondPreference),
+      escapeCsv(a.secondPrefReason),
+      escapeCsv(a.yearOfStudy),
+      escapeCsv(a.status),
+      escapeCsv(a.github),
+      escapeCsv(a.linkedin),
+      escapeCsv(a.portfolio),
+      escapeCsv(a.sevenDaysBuild || a.projectDetails),
+      escapeCsv(a.skillToLearn),
+      escapeCsv(a.whyHackclub),
+      escapeCsv(a.appliedDate)
+    ].join(','));
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `hackclub_recruitment_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleUpdateStatus = async (appId, newStatus) => {
     setUpdatingId(appId);
     try {
-      // Call status update API
       await api.updateRecruitmentApplicationStatus(appId, newStatus);
-      
-      // Update local applications list
       setApplications(prev => prev.map(a => a.id === appId ? { ...a, status: newStatus } : a));
       
-      // If accepted, we can fetch all updated users from the database to sync the list
-      const syncData = await api.getData();
-      if (syncData.users) setUsers(syncData.users);
-      if (syncData.recruitmentApplications) setApplications(syncData.recruitmentApplications);
+      if (newStatus === 'Accepted') {
+        const syncData = await api.getData();
+        if (syncData.users) setUsers(syncData.users);
+        if (syncData.recruitmentApplications) setApplications(syncData.recruitmentApplications);
+      }
 
       if (selectedApplicant && selectedApplicant.id === appId) {
         setSelectedApplicant(prev => ({ ...prev, status: newStatus }));
@@ -110,6 +196,15 @@ export default function RecruitmentTab({
     }
   };
 
+  const stats = {
+    total: filteredApplicants.length,
+    pending: filteredApplicants.filter(a => a.status === 'Pending').length,
+    underReview: filteredApplicants.filter(a => a.status === 'Under Review').length,
+    shortlisted: filteredApplicants.filter(a => a.status === 'Shortlisted').length,
+    accepted: filteredApplicants.filter(a => a.status === 'Accepted').length,
+    rejected: filteredApplicants.filter(a => a.status === 'Rejected').length,
+  };
+
   return (
     <section className="panel-section" style={{ animation: 'fadeIn 0.4s ease' }}>
       <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
@@ -117,7 +212,14 @@ export default function RecruitmentTab({
           <h2>Recruitment Applications</h2>
           <p className="subtitle">Review candidate profiles, filter by technical domains, and accept new makers into the club.</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button 
+            className="button button-outlined"
+            onClick={handleExportCsv}
+            style={{ fontSize: '0.85rem', padding: '8px 14px', borderColor: 'var(--blue)', color: 'var(--blue)' }}
+          >
+            📥 Export CSV
+          </button>
           <button 
             className="button button-outlined"
             onClick={refreshApplications}
@@ -138,8 +240,36 @@ export default function RecruitmentTab({
         </div>
       </div>
 
+      {/* Analytics Overview Bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+        <div className="panel-card" style={{ padding: '14px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text)' }}>{stats.total}</div>
+        </div>
+        <div className="panel-card" style={{ padding: '14px', textAlign: 'center', borderBottom: '3px solid var(--orange)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pending</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--orange)' }}>{stats.pending}</div>
+        </div>
+        <div className="panel-card" style={{ padding: '14px', textAlign: 'center', borderBottom: '3px solid var(--amber)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Under Review</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--amber)' }}>{stats.underReview}</div>
+        </div>
+        <div className="panel-card" style={{ padding: '14px', textAlign: 'center', borderBottom: '3px solid var(--blue)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Shortlisted</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--blue)' }}>{stats.shortlisted}</div>
+        </div>
+        <div className="panel-card" style={{ padding: '14px', textAlign: 'center', borderBottom: '3px solid var(--success)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Accepted (Allowed)</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--success)' }}>{stats.accepted}</div>
+        </div>
+        <div className="panel-card" style={{ padding: '14px', textAlign: 'center', borderBottom: '3px solid var(--danger)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rejected</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--danger)' }}>{stats.rejected}</div>
+        </div>
+      </div>
+
       {/* Filter Toolbar */}
-      <div className="panel-card" style={{ padding: '20px', marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="panel-card" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ flex: 1, minWidth: '240px' }}>
           <input
             type="text"
@@ -183,15 +313,58 @@ export default function RecruitmentTab({
               cursor: 'pointer'
             }}
           >
+            <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Under Review">Under Review</option>
             <option value="Shortlisted">Shortlisted</option>
             <option value="Accepted">Accepted</option>
             <option value="Rejected">Rejected</option>
-            <option value="All">All Statuses</option>
           </select>
         </div>
+
+        <button 
+          className="button button-outlined"
+          onClick={handleSelectAll}
+          style={{ fontSize: '0.85rem', padding: '9px 14px' }}
+        >
+          {selectedIds.length === filteredApplicants.length && filteredApplicants.length > 0 ? 'Deselect All' : 'Select All'}
+        </button>
       </div>
+
+      {/* Batch Actions Bar (when candidates are selected) */}
+      {selectedIds.length > 0 && (
+        <div className="panel-card" style={{ padding: '12px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,68,68,0.08)', border: '1px solid rgba(255,68,68,0.3)', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>
+            ✓ {selectedIds.length} candidate(s) selected
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button 
+              className="button button-outlined"
+              onClick={() => handleBatchStatus('Shortlisted')}
+              disabled={isBatchUpdating}
+              style={{ fontSize: '0.8rem', padding: '6px 12px', borderColor: 'var(--blue)', color: 'var(--blue)' }}
+            >
+              Shortlist Selected
+            </button>
+            <button 
+              className="button button-filled"
+              onClick={() => handleBatchStatus('Accepted')}
+              disabled={isBatchUpdating}
+              style={{ fontSize: '0.8rem', padding: '6px 12px', backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}
+            >
+              Accept & Auto-Allow Selected
+            </button>
+            <button 
+              className="button button-outlined"
+              onClick={() => handleBatchStatus('Rejected')}
+              disabled={isBatchUpdating}
+              style={{ fontSize: '0.8rem', padding: '6px 12px', borderColor: 'var(--danger)', color: 'var(--danger)' }}
+            >
+              Reject Selected
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Grid of applicants */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
@@ -205,34 +378,44 @@ export default function RecruitmentTab({
                 padding: '24px', 
                 borderLeft: `4px solid ${app.status === 'Accepted' ? 'var(--success)' : app.status === 'Rejected' ? 'var(--danger)' : 'var(--orange)'}`,
                 cursor: 'pointer',
-                transition: 'transform 0.2s, border-color 0.2s'
+                transition: 'transform 0.2s, border-color 0.2s',
+                position: 'relative'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '8px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  <span style={{ 
-                    fontSize: '0.75rem', 
-                    padding: '2px 8px', 
-                    borderRadius: '4px', 
-                    backgroundColor: 'rgba(255,68,68,0.12)', 
-                    color: 'var(--orange)', 
-                    border: '1px solid rgba(255,68,68,0.25)',
-                    fontWeight: '600'
-                  }}>
-                    1st: {app.firstPreference || app.domain}
-                  </span>
-                  {app.secondPreference && app.secondPreference !== 'None' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(app.id)}
+                    onChange={(e) => handleToggleSelect(app.id, e)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--orange)' }}
+                  />
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     <span style={{ 
                       fontSize: '0.75rem', 
                       padding: '2px 8px', 
                       borderRadius: '4px', 
-                      backgroundColor: 'rgba(255,255,255,0.04)', 
-                      color: 'var(--text-muted)', 
-                      border: '1px solid rgba(255,255,255,0.08)' 
+                      backgroundColor: 'rgba(255,68,68,0.12)', 
+                      color: 'var(--orange)', 
+                      border: '1px solid rgba(255,68,68,0.25)',
+                      fontWeight: '600'
                     }}>
-                      2nd: {app.secondPreference}
+                      1st: {app.firstPreference || app.domain}
                     </span>
-                  )}
+                    {app.secondPreference && app.secondPreference !== 'None' && (
+                      <span style={{ 
+                        fontSize: '0.75rem', 
+                        padding: '2px 8px', 
+                        borderRadius: '4px', 
+                        backgroundColor: 'rgba(255,255,255,0.04)', 
+                        color: 'var(--text-muted)', 
+                        border: '1px solid rgba(255,255,255,0.08)' 
+                      }}>
+                        2nd: {app.secondPreference}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   <span style={{ 
