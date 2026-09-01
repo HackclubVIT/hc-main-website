@@ -1013,14 +1013,6 @@ app.post('/api/recruitment/apply', async (req, res) => {
 
     const activeRecruitmentId = recruitmentId || 'recruitment-2026';
 
-    const isDupe = (memoryDb.recruitmentApplications || []).some(
-      a => (a.email && a.email.toLowerCase() === email.toLowerCase()) || 
-           (a.registerNumber && a.registerNumber.toUpperCase() === registerNumber.toUpperCase())
-    );
-    if (isDupe) {
-      return res.status(400).json({ error: 'An application with this email or register number has already been submitted.' });
-    }
-
     const newApp = {
       id: Date.now(),
       recruitmentId: activeRecruitmentId,
@@ -1058,43 +1050,38 @@ app.post('/api/recruitment/apply', async (req, res) => {
 
     // Save directly to Prisma DB
     try {
-      const dupe = await prisma.recruitmentApplication.findFirst({
-        where: { OR: [{ email: newApp.email }, { registerNumber: newApp.registerNumber }] }
+      await prisma.recruitmentApplication.create({
+        data: {
+          id: toBig(newApp.id),
+          recruitmentId: newApp.recruitmentId,
+          name: newApp.name,
+          registerNumber: newApp.registerNumber,
+          email: newApp.email,
+          phoneNumber: newApp.phoneNumber,
+          domain: newApp.domain,
+          firstPreference: newApp.firstPreference,
+          secondPreference: newApp.secondPreference,
+          firstPrefReason: newApp.firstPrefReason,
+          secondPrefReason: newApp.secondPrefReason,
+          yearOfStudy: newApp.yearOfStudy,
+          technicalSkills: newApp.technicalSkills || [],
+          skillLevel: newApp.skillLevel,
+          github: newApp.github,
+          linkedin: newApp.linkedin,
+          portfolio: newApp.portfolio,
+          sevenDaysBuild: newApp.sevenDaysBuild,
+          skillToLearn: newApp.skillToLearn,
+          whyHackclub: newApp.whyHackclub,
+          expectations: newApp.expectations,
+          productiveWebsiteQuestions: newApp.productiveWebsiteQuestions,
+          threeDaysProjectTradeoffs: newApp.threeDaysProjectTradeoffs,
+          anythingElse: newApp.anythingElse,
+          whyJoin: newApp.whyJoin,
+          projectDetails: newApp.projectDetails,
+          status: newApp.status,
+          appliedDate: newApp.appliedDate
+        }
       });
-      if (!dupe) {
-        await prisma.recruitmentApplication.create({
-          data: {
-            id: toBig(newApp.id),
-            recruitmentId: newApp.recruitmentId,
-            name: newApp.name,
-            registerNumber: newApp.registerNumber,
-            email: newApp.email,
-            phoneNumber: newApp.phoneNumber,
-            domain: newApp.domain,
-            firstPreference: newApp.firstPreference,
-            secondPreference: newApp.secondPreference,
-            firstPrefReason: newApp.firstPrefReason,
-            secondPrefReason: newApp.secondPrefReason,
-            yearOfStudy: newApp.yearOfStudy,
-            technicalSkills: newApp.technicalSkills || [],
-            skillLevel: newApp.skillLevel,
-            github: newApp.github,
-            linkedin: newApp.linkedin,
-            portfolio: newApp.portfolio,
-            sevenDaysBuild: newApp.sevenDaysBuild,
-            skillToLearn: newApp.skillToLearn,
-            whyHackclub: newApp.whyHackclub,
-            expectations: newApp.expectations,
-            productiveWebsiteQuestions: newApp.productiveWebsiteQuestions,
-            threeDaysProjectTradeoffs: newApp.threeDaysProjectTradeoffs,
-            anythingElse: newApp.anythingElse,
-            whyJoin: newApp.whyJoin,
-            projectDetails: newApp.projectDetails,
-            status: newApp.status,
-            appliedDate: newApp.appliedDate
-          }
-        });
-      }
     } catch (dbErr) {
       console.error('[Recruitment Prisma DB Error]', dbErr.message);
     }

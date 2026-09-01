@@ -106,7 +106,7 @@ export default function RecruitmentPortal({ onBack }) {
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      triggerError(err.message || 'Failed to submit application. You may have already applied.');
+      triggerError(err.message || 'Failed to submit application. Please try again.');
     } finally {
       setLoading(false);
     }

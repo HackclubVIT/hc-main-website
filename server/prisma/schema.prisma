@@ -78,14 +78,13 @@ model ProjectRating {
   @@map("project_ratings")
 }
 
-// Recruitment form submissions. Unique email + register number guarantee one
-// application per person.
+// Recruitment form submissions.
 model RecruitmentApplication {
   id                         BigInt  @id
   recruitmentId              String  @default("recruitment-2026")
   name                       String
-  registerNumber             String  @unique
-  email                      String  @unique
+  registerNumber             String
+  email                      String
   phoneNumber                String?
   domain                     String?
   firstPreference            String?

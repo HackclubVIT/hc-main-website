@@ -98,7 +98,7 @@ The backend lives in the `server/` directory and is a standalone Node.js Express
 ### Data model (Prisma)
 - **`User`** — registered members/admins. Login requires the email to exist here. Stores an optional per-user `password` (set at signup or via a password reset); when absent, the shared club password is accepted.
 - **`Project`** — project submissions with nested ratings/awards (JSON columns).
-- **`RecruitmentApplication`** — recruitment submissions; `email` and `registerNumber` are **unique**, so one person can apply only once.
+- **`RecruitmentApplication`** — recruitment submissions; supports multiple submissions per applicant with individual tracking.
 - **`AllowedEmail`** — admin-managed signup allowlist (see below).
 - **`Collection`** — key/value store for bulk dashboard data the UI syncs wholesale (announcements, uploads, events, winners, feedback, etc.).
 
@@ -126,7 +126,7 @@ The live password-requirement checklist appears only while **creating an account
 | GET | `/api/auth/me` | Validate token, return user |
 | GET | `/api/data` | Fetch all global state |
 | GET | `/api/public/leaderboard` | Public leaderboard (no auth) |
-| POST | `/api/recruitment/apply` | Submit a recruitment application (one per email/reg no.) |
+| POST | `/api/recruitment/apply` | Submit a recruitment application |
 | GET / PUT | `/api/recruitment/applications` | List / update applications (admin) |
 | GET / POST / DELETE | `/api/allowlist` | Manage the signup allowlist (admin) |
 

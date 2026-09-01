@@ -772,20 +772,24 @@ export default function HackClubLanding({ onLogin, onOpenRecruitment }) {
         </div>
 
         {leaderboard && leaderboard.some((member) => (member.totalScore || 0) > 0) && (() => {
-          const visibleLeaderboard = leaderboard.filter((member) => (member.totalScore || 0) > 0);
+          const visibleLeaderboard = leaderboard
+            .filter((member) => (member.totalScore || 0) > 0)
+            .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
+            .slice(0, 3);
           return (
             <div className="hc-leaderboard-ticker-wrap">
               <div className="hc-ticker-title">
-                <span className="live-badge">LIVE</span> LEADERBOARD RANKINGS
+                <span className="live-badge">LIVE</span> TOP 3 LEADERBOARD CHAMPIONS
               </div>
               <div className="hc-ticker-container">
                 <div className="hc-ticker-track">
                   {/* Double the list to ensure infinite seamless scrolling */}
                   {[...visibleLeaderboard, ...visibleLeaderboard].map((member, index) => {
                     const rank = (index % visibleLeaderboard.length) + 1;
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
                     return (
                       <div key={`${member.id}-${index}`} className="hc-ticker-item">
-                        <span className="hc-ticker-rank">#{rank}</span>
+                        <span className="hc-ticker-rank">{medal} #{rank}</span>
                         <span className="hc-ticker-name">{member.name}</span>
                         <span className="hc-ticker-score">{member.totalScore} pts</span>
                       </div>
