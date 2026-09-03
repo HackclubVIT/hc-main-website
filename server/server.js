@@ -351,9 +351,10 @@ app.post('/api/auth/login', async (req, res) => {
   const dbUser = await findUserByEmail(email);
   const isDemo = email === 'admin@vitstudent.ac.in' || email === 'user@vitstudent.ac.in';
 
-  // Accept user's custom password if set, or default shared club password
-  const expectedPassword = dbUser?.password || 'Hackclub@2026';
-  if (password !== expectedPassword && !isDemo) {
+  // Accept default shared club password ('Hackclub@2026') or the user's custom password
+  const matchesSharedPassword = password === 'Hackclub@2026';
+  const matchesCustomPassword = dbUser?.password && password === dbUser.password;
+  if (!matchesSharedPassword && !matchesCustomPassword && !isDemo) {
     return res.status(400).json({ error: 'Invalid email or password.' });
   }
 

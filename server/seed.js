@@ -21,7 +21,7 @@ function mapUser(u) {
     id: toBig(u.id ?? Date.now()),
     name: u.name ?? 'Member',
     email: u.email ?? null,
-    password: u.password ?? null,
+    password: u.password ?? 'Hackclub@2026',
     role: u.role ?? 'Member',
     department: u.department ?? null,
     status: u.status ?? 'Active',
