@@ -1205,10 +1205,17 @@ app.delete('/api/allowlist/:id', authenticateToken, requireAdmin, async (req, re
 // frontend calls the API via the relative path `/api`, so this is same-origin.
 const distPath = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    }
+  }));
   // SPA fallback: any non-API route returns index.html so client routing works.
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api')) return res.status(404).json({ error: 'Not found.' });
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }

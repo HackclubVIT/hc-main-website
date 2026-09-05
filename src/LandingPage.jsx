@@ -128,7 +128,7 @@ const CORE = [
   { name: "Jesta", role: "Technical Lead" },
   { name: "Kushagra", role: "Design Lead" },
   { name: "Arya", role: "Operations Lead" },
-  { name: "Vijayendra", role: "Finance Lead" },
+  { name: "Vijyendra", role: "Finance Lead" },
 ];
 
 const FAQS = [
